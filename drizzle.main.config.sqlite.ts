@@ -5,16 +5,16 @@ import os from "os";
 import fs from "fs";
 
 function getUrl() {
-  const appPath = path.join(os.homedir(), "Documents", "mcs", "mcsLibrary");
+  const appPath = path.join(os.homedir(), "Documents", "mcgs", "sports");
   if (!fs.existsSync(appPath)) {
     fs.mkdirSync(appPath, { recursive: true });
   }
-  const dbPath = path.join(appPath, "mcsLibrary.db");
+  const dbPath = path.join(appPath, "sports_main.db");
   return dbPath;
 }
 export default {
-  schema: "./src/db/sqlite/schema.ts",
-  out: "./src/db/sqlite/drizzle",
+  schema: "./src/db/sqlite/main/schema.ts",
+  out: "./src/db/sqlite/main/drizzle",
   dialect: "sqlite",
   dbCredentials: {
     url: getUrl(),

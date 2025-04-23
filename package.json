@@ -24,10 +24,13 @@
     "pg:introspect": "drizzle-kit introspect:pg --config drizzle.config.pg.ts",
     "pg:studio": "drizzle-kit studio --config drizzle.config.pg.ts --host 127.0.0.1",
     "sqlite:push": "drizzle-kit push:sqlite --config drizzle.config.sqlite.ts",
-    "sqlite:generate": "npx drizzle-kit generate --config=drizzle.config.sqlite.ts",
+    "sqlite:generate:main": "npx drizzle-kit generate --config=drizzle.main.config.sqlite.ts",
+    "sqlite:generate:psports": "npx drizzle-kit generate --config=drizzle.perfomance_sports.config.sqlite.ts",
+    "sqlite:generate:tsports": "npx drizzle-kit generate --config=drizzle.team_sports.config.sqlite.ts",
     "sqlite:generate:custom": "drizzle-kit generate --custom --config drizzle.config.sqlite.ts",
     "sqlite:migration:deploy": "tsx src/db/sqlite/deploy.sqlite.ts",
-    "sqlite:studio": "drizzle-kit studio --config drizzle.config.sqlite.ts --host 127.0.0.1"
+    "sqlite:studio": "drizzle-kit studio --config drizzle.config.sqlite.ts --host 127.0.0.1",
+    "sqlite:generate:all": "yarn sqlite:generate:main && yarn sqlite:generate:psports && yarn sqlite:generate:tsports"
   },
   "keywords": [],
   "author": {

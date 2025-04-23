@@ -1,0 +1,51 @@
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+// Helper for timestamps
+const timestamps = {
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+  deletedAt: text("deleted_at"),
+};
+
+//house
+const House = sqliteTable("house", {
+  id: text("id").primaryKey().notNull(),
+  name: text("name", { length: 255 }).notNull(),
+  ...timestamps,
+});
+
+//participant
+const Participant = sqliteTable(
+  "participant",
+  {
+    id: text("id").primaryKey().notNull(),
+    firstName: text("first_name", { length: 255 }).notNull(),
+    lastName: text("last_name", { length: 255 }).notNull(),
+    age: integer("age").notNull(),
+    gender: text("gender", { enum: ["male", "female"] }).notNull(),
+    houseId: text("house_id").references(() => House.id),
+    ...timestamps,
+  },
+  (table) => [
+    index("participant_name_idx").on(table.firstName, table.lastName),
+    index("participant_house_idx").on(table.houseId),
+  ]
+);
+// events
+const Event = sqliteTable("event", {
+  id: text("id").primaryKey().notNull(),
+  eventNumber: integer("event_number").default(0),
+  title: text("title", { length: 255 }).notNull(),
+  description: text("description"),
+  type: text("type", { enum: ["team", "individual"] }).notNull(),
+  recordHolder: text("record_holder"),
+  recordingMetric: text("recording_metric"),
+  record: text("record"),
+  ...timestamps,
+});
+
+export { Participant, Event, House };
