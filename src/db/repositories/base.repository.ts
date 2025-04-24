@@ -11,6 +11,7 @@ export abstract class BaseRepository<T extends Record<string, any>> {
   ) {}
 
   async create(data: Omit<T, "createdAt" | "updatedAt">): Promise<T> {
+    console.log("creating:", data);
     try {
       const result = await this.db.query
         .insert(this.table)
@@ -39,10 +40,12 @@ export abstract class BaseRepository<T extends Record<string, any>> {
     }
   }
 
-  async update(
-    id: string,
-    data: Partial<Omit<T, "id" | "createdAt">>
-  ): Promise<T> {
+  async update(d: any[]): Promise<T> {
+    const [id, data] = d as [
+      id: string,
+      data: Partial<Omit<T, "id" | "createdAt">>
+    ];
+    console.log("updating:", data, id);
     try {
       const result = await this.db.query
         .update(this.table)

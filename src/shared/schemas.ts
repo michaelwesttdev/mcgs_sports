@@ -10,6 +10,13 @@ export const NewSessionSchema = z.object({
   location: z.string().min(1, "Location is required"),
   disciplineId: z.string().min(1, "Descipline is required"),
 });
+export const NewDisciplineSchema = z.object({
+  name: z.string().min(1, "Discipline name is required"),
+  type: z.enum(["performance", "team"], {
+    message: "Discipline type is required",
+  }),
+});
 
 /* types */
 export type NewSessionSchemaType = z.infer<typeof NewSessionSchema>;
+export type NewDisciplineSchemaType = z.infer<typeof NewDisciplineSchema>;

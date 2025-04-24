@@ -4,6 +4,7 @@ import {
   HelpCircle,
   LayoutDashboard,
   Shell,
+  TicketPlus,
 } from "lucide-react";
 export type NavLink = {
   title: string;
@@ -21,6 +22,11 @@ export const nav_links: NavLink[] = [
     title: "Sessions",
     path: "/sessions",
     Icon: Shell,
+  },
+  {
+    title: "Disciplines",
+    path: "/disciplines",
+    Icon: TicketPlus,
   },
 ];
 

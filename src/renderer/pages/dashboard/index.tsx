@@ -1,8 +1,11 @@
+import NewDisciplineDialogForm from "@/renderer/components/NewDisciplineDialogForm";
 import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
 import { Button } from "@/renderer/components/ui/button";
 import { Card, CardContent } from "@/renderer/components/ui/card";
+import { useDiscipline } from "@/renderer/hooks/use_discipline";
+import { Discipline } from "@/shared/types/db";
 import { format } from "date-fns";
-import React from "react";
+import React, { useEffect } from "react";
 
 function DashboardPageHeader() {
   return (
@@ -11,13 +14,18 @@ function DashboardPageHeader() {
         <h1 className='text-xl font-bold'>MCGS Sports Scoring DashBoard</h1>
         <p className='text-xs tracking-wide'>{format(new Date(), "PPPP")}</p>
       </div>
-      <div className='container flex items-center justify-end pt-4'>
+      <div className='container flex items-center justify-end pt-4 gap-4'>
         <NewSessionDialogForm />
+        <NewDisciplineDialogForm />
       </div>
     </div>
   );
 }
-function DashboardPageQuickActions() {
+function DashboardPageQuickActions({
+  disciplines,
+}: {
+  disciplines: Discipline[];
+}) {
   return (
     <Card className='my-4'>
       <CardContent className='flex items-center gap-5 p-4'>
@@ -33,16 +41,29 @@ function DashboardPageQuickActions() {
             <p>Total Events</p>
           </CardContent>
         </Card>
+        <Card className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
+          <CardContent>
+            <h1 className='text-3xl font-bold'>{disciplines.length}</h1>
+            <p>
+              Total Discipline
+              {disciplines.length > 1 || (disciplines.length < 1 && "'s")}
+            </p>
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   );
 }
 
 export default function DashboardPage() {
+  const { disciplines, listAllDisciplines } = useDiscipline();
+  useEffect(() => {
+    listAllDisciplines();
+  }, []);
   return (
     <div className='p-6 pt-2'>
       <DashboardPageHeader />
-      <DashboardPageQuickActions />
+      <DashboardPageQuickActions disciplines={disciplines} />
     </div>
   );
 }

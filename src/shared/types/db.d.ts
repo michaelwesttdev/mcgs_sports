@@ -16,3 +16,15 @@ export interface SQL {
   sql: string;
   params: any[];
 }
+
+//tables
+interface BaseTable {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+}
+export interface Discipline extends BaseTable {
+  name: string;
+  type: "performance" | "team";
+}

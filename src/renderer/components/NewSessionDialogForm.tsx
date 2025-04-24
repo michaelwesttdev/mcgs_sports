@@ -1,5 +1,11 @@
 import React from "react";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,6 +21,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "./ui/input";
 import { Toast } from "./Toast";
 import { Button } from "./ui/button";
+import SeachableSelectWithCreationLogic from "./seachableSelectWithCreationLogic";
+import { z } from "zod";
+import { useDiscipline } from "../hooks/use_discipline";
 
 const defaultValues: NewSessionSchemaType = {
   title: "",
@@ -25,6 +34,8 @@ const defaultValues: NewSessionSchemaType = {
 };
 
 export default function NewSessionDialogForm() {
+  const [open, setOpen] = React.useState(false);
+  const { disciplines } = useDiscipline();
   const form = useForm({
     defaultValues,
     resolver: zodResolver(NewSessionSchema),
@@ -49,8 +60,11 @@ export default function NewSessionDialogForm() {
         <Button className='shadow-md shadow-white/50'>New Session</Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Session</DialogTitle>
+        </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-3'>
             <FormField
               control={form.control}
               name='title'
@@ -116,7 +130,16 @@ export default function NewSessionDialogForm() {
                 <FormItem>
                   <FormLabel>Discipline</FormLabel>
                   <FormControl>
-                    <Input type='text' {...field} placeholder='location' />
+                    <SeachableSelectWithCreationLogic
+                      canCreate={true}
+                      onChange={field.onChange}
+                      value={field.value}
+                      placeholder='Select Discipline'
+                      options={disciplines.map((d) => ({
+                        label: d.name,
+                        value: d.id,
+                      }))}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -128,3 +151,40 @@ export default function NewSessionDialogForm() {
     </Dialog>
   );
 }
+
+/*
+<SeachableSelectWithCreationLogic
+                      canCreate={true}
+                      onCreate={(v) => {}}
+                      options={[
+                        {
+                          label: "Basketball",
+                          value: "basketball",
+                        },
+                        {
+                          label: "Football",
+                          value: "football",
+                        },
+                      ]}
+                      value={field.value}
+                      onChange={field.onChange}
+                      createSchema={z.object({
+                        name: z.string({
+                          message: "Discipline Name is required",
+                        }),
+                      })}
+                      createFormDefaults={{ name: "" }}
+                      renderCreateFields={(form) => (
+                        <FormField
+                          control={form.control}
+                          name='name'
+                          render={ ({ field }) => (
+                            <FormItem>
+                              <FormLabel>Discipline Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder='Discipline Name' />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>)}
+                    /> 
+ */

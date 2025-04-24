@@ -12,27 +12,37 @@ import {
   FormMessage,
 } from "./ui/form";
 import { DefaultValues, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod/dist";
-import { ZodSchema } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z, ZodObject, ZodSchema } from "zod";
+import { Button } from "./ui/button";
+import { ChevronsUpDown } from "lucide-react";
+import { cn } from "../lib/utils";
+
+type CreateConfigProps = {
+  schema: ZodSchema;
+  formDefaults: DefaultValues<any>;
+  onCreate: <T>(data: T) => void;
+  formTitle?: string;
+};
 
 type Props = {
   canCreate: boolean;
-  onCreate: <T>(data: T) => void;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
   value: string;
   placeholder?: string;
   searchPlaceholder?: string;
+  createConfig?: CreateConfigProps;
 };
 
 export default function SeachableSelectWithCreationLogic({
   canCreate,
-  onCreate,
   options,
   onChange,
   value,
   placeholder = "Select an option",
   searchPlaceholder = "Search...",
+  createConfig,
 }: Readonly<Props>) {
   const [open, setOpen] = useState(false);
   return (
@@ -42,13 +52,19 @@ export default function SeachableSelectWithCreationLogic({
         setOpen(v);
       }}>
       <PopoverTrigger asChild>
-        <Input
-          value={value}
-          placeholder={placeholder}
-          onFocus={(e) => {
-            e.preventDefault();
-          }}
-        />
+        <Button
+          variant='outline'
+          role='combobox'
+          type='button'
+          aria-expanded={false}
+          className={cn(
+            "w-full justify-between",
+            !value && "text-muted-foreground"
+          )}
+          disabled={false}>
+          {value ? value : placeholder}
+          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+        </Button>
       </PopoverTrigger>
       <PopoverContent>
         <Command>
@@ -64,7 +80,7 @@ export default function SeachableSelectWithCreationLogic({
                 {option.label}
               </CommandItem>
             ))}
-            {canCreate && (
+            {/*  {canCreate && (
               <CommandItem
                 onSelect={() => {
                   onCreate(value);
@@ -72,64 +88,10 @@ export default function SeachableSelectWithCreationLogic({
                 }}>
                 Create {value}
               </CommandItem>
-            )}
+            )} */}
           </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
-  );
-}
-
-type CreateDialogType<T> = {
-  defaultValues: DefaultValues<T>;
-  onSubmit: (data: T) => void;
-  title: string;
-  schema: ZodSchema<T>;
-};
-
-function CreateDialog<T>({
-  defaultValues,
-  onSubmit,
-  title,
-  schema,
-}: Readonly<CreateDialogType<T>>) {
-  const [open, setOpen] = useState(false);
-  const form = useForm({
-    defaultValues,
-    resolver: zodResolver(schema),
-  });
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <CommandItem
-          onSelect={() => {
-            setOpen(true);
-          }}>
-          Create {title}
-        </CommandItem>
-      </DialogTrigger>
-      <DialogContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            {Object.keys(defaultValues).map((key) => (
-              <FormField
-                key={key}
-                control={form.control}
-                name={key as any}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{key}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ))}
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
   );
 }

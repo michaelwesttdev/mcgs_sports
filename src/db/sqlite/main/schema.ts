@@ -17,7 +17,7 @@ const Discipline = sqliteTable(
   {
     id: text("id").primaryKey().notNull(),
     name: text("name", { length: 255 }).notNull().unique(),
-    description: text("description"),
+    type: text("type", { enum: ["performance", "team"] }).notNull(),
     ...timestamps,
   },
   (table) => [index("discipline_name_idx").on(table.name)]

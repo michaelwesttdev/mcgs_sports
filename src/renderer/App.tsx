@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router";
 import RootLayout from "./components/layouts/RootLayout";
 import DashboardPage from "./pages/dashboard";
 import SessionsPage from "./pages/sessions";
+import DisciplinesPage from "./pages/disciplines";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <Route element={<RootLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path='sessions' element={<SessionsPage />} />
+        <Route path='disciplines' element={<DisciplinesPage />} />
       </Route>
     </Routes>
   );

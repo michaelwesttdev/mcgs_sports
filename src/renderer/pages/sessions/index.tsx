@@ -3,6 +3,7 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { PlusCircle } from "lucide-react";
+import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
 
 const sessionsData = [
   {
@@ -31,10 +32,7 @@ export default function SessionsPage({}: Props) {
     <div className='p-6 space-y-6'>
       <div className='flex justify-between items-center'>
         <h1 className='text-2xl font-bold'>Sessions</h1>
-        <Button className='flex items-center gap-2'>
-          <PlusCircle className='w-5 h-5' />
-          Add Session
-        </Button>
+        <NewSessionDialogForm />
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>

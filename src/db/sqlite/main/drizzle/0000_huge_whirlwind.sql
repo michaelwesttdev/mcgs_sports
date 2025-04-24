@@ -1,7 +1,7 @@
 CREATE TABLE `discipline` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text(255) NOT NULL,
-	`description` text,
+	`type` text NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`deleted_at` text
@@ -25,9 +25,11 @@ CREATE TABLE `session` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text(255) NOT NULL,
 	`date` text NOT NULL,
-	`time` text NOT NULL,
+	`time` text,
 	`location` text(255) NOT NULL,
+	`discipline_id` text NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`deleted_at` text
+	`deleted_at` text,
+	FOREIGN KEY (`discipline_id`) REFERENCES `discipline`(`id`) ON UPDATE no action ON DELETE cascade
 );

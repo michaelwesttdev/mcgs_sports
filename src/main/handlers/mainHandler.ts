@@ -27,7 +27,8 @@ export class MainHandler {
     operation: keyof BaseRepository<T>
   ) {
     const channel = `${context}:${repoKey}:${operation}` as IpcChannel;
-    ipcMain.handle(channel, async (_, args: any[]) => {
+    ipcMain.handle(channel, async (_, ...args: any[]) => {
+      console.log("handling:", channel, "args:", args);
       try {
         const repo = this.db[repoKey] as any;
         const result = await repo[operation](...args);
@@ -38,6 +39,7 @@ export class MainHandler {
     });
   }
   registerMainHandlers() {
+    this.registerMainRepositoryHandlers();
     this.registerPerfomanceSportsHandlers();
     this.registerCustomHandlers();
   }
