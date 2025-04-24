@@ -28,3 +28,9 @@ export interface Discipline extends BaseTable {
   name: string;
   type: "performance" | "team";
 }
+export interface MainEvent extends BaseTable {
+  title: string;
+  description: string;
+  disciplineId: string;
+  type: "team" | "individual";
+}

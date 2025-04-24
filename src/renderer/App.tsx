@@ -4,6 +4,7 @@ import RootLayout from "./components/layouts/RootLayout";
 import DashboardPage from "./pages/dashboard";
 import SessionsPage from "./pages/sessions";
 import DisciplinesPage from "./pages/disciplines";
+import EventsPage from "./pages/events";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path='sessions' element={<SessionsPage />} />
         <Route path='disciplines' element={<DisciplinesPage />} />
+        <Route path='events' element={<EventsPage />} />
       </Route>
     </Routes>
   );

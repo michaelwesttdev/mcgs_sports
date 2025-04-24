@@ -13,11 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/renderer/components/ui/select";
+import { DeleteModal } from "@/renderer/components/deleteModal";
 
 export default function DisciplinesPage() {
   const [searchName, setSearchName] = useState("");
   const [searchType, setSearchType] = useState("");
-  const { disciplines } = useDiscipline();
+  const { disciplines, deleteDiscipline } = useDiscipline();
 
   const filteredDisciplines = disciplines.filter(
     (discipline) =>
@@ -58,9 +59,18 @@ export default function DisciplinesPage() {
                 <p className='text-sm text-gray-500'>Type: {discipline.type}</p>
               </div>
               <aside className='grid gap-3'>
-                <Button variant='destructive' className='w-6 h-6' size='icon'>
-                  <Trash />
-                </Button>
+                <DeleteModal
+                  itemName={`Discipline: ${discipline.name}`}
+                  onDelete={async () => await deleteDiscipline(discipline.id)}
+                  trigger={
+                    <Button
+                      variant='destructive'
+                      className='w-6 h-6'
+                      size='icon'>
+                      <Trash />
+                    </Button>
+                  }
+                />
                 <NewDisciplineDialogForm
                   discipline={discipline}
                   purpose='edit'
