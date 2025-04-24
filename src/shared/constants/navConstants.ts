@@ -9,6 +9,7 @@ import {
   BookPlus,
   Settings,
   HelpCircle,
+  Shell,
 } from "lucide-react";
 export type NavLink = {
   title: string;
@@ -23,9 +24,9 @@ export const nav_links: NavLink[] = [
     Icon: Home,
   },
   {
-    title: "Students",
-    path: "/students",
-    Icon: BookUser,
+    title: "Sessions",
+    path: "/sessions",
+    Icon: Shell,
   },
   {
     title: "Staff",
