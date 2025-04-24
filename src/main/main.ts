@@ -1,8 +1,12 @@
 import { BrowserWindow, ipcMain, Menu } from "electron";
 import { updateElectronApp, UpdateSourceType } from "update-electron-app";
 import log from "electron-log";
-import { getLoggingUrl } from "@/shared/helpers/urls";
+import { getLoggingUrl, getMainDbUrl } from "@/shared/helpers/urls";
 import { MainConfig } from "@/shared/types/electron.main";
+import { initDb } from "@/db/sqlite";
+import * as MainSchema from "@/db/sqlite/main/schema";
+import { MainDBContext } from "@/db/contexts/main.db.context";
+import { MainHandler } from "./handlers/mainHandler";
 
 export class Main {
   private window: Electron.BrowserWindow;
@@ -41,7 +45,6 @@ export class Main {
       this.window = null;
     });
     this.createMenu();
-    this.registerHandlers();
     process.env.NODE_ENV !== "production" &&
       this.window.webContents.openDevTools();
   }
@@ -66,6 +69,14 @@ export class Main {
     ipcMain.on("win:restore", async () => {
       this.window.restore();
     });
+    /* main handlers */
+    const db = initDb(MainSchema, {
+      dbPath: getMainDbUrl(),
+      migrate: true,
+    });
+    const mainDbContext = new MainDBContext(db);
+    const mainHandler = new MainHandler(mainDbContext);
+    mainHandler.registerMainHandlers();
   }
 
   private registerAppHandlers(): void {

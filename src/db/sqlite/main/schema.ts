@@ -38,8 +38,13 @@ const Session = sqliteTable("session", {
   id: text("id").primaryKey().notNull(),
   title: text("title", { length: 255 }).notNull(),
   date: text("date").notNull(),
-  time: text("time").notNull(),
+  time: text("time"),
   location: text("location", { length: 255 }).notNull(),
+  disciplineId: text("discipline_id")
+    .notNull()
+    .references(() => Discipline.id, {
+      onDelete: "cascade",
+    }),
   ...timestamps,
 });
 

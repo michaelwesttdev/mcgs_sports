@@ -1,10 +1,33 @@
+import { app } from "electron";
+import path from "path";
+import fs from "fs";
 export function getLoggingUrl(fileName: string): string {
   return "./logs/" + fileName;
 }
-export function getDbUrl(): string {
-  return "";
+export function getMainDbUrl(): string {
+  const base = getAppStoreBaseUrl();
+  const mainDbPath = path.join(base, "main.db");
+  return mainDbPath;
+}
+export function getSessionDbFolderUrl(): string {
+  const base = getAppStoreBaseUrl();
+  const sessionsPath = path.join(base, "sessions");
+  if (!fs.existsSync(sessionsPath)) {
+    fs.mkdirSync(sessionsPath, { recursive: true });
+  }
+  return sessionsPath;
+}
+export function getSessionDbPath(id: string) {
+  const basePath = getSessionDbFolderUrl();
+  const SessionDbPath = path.join(basePath, `${id}.db`);
+  return SessionDbPath;
 }
 
 export function getAppStoreBaseUrl(): string {
-  return "";
+  const docsPath = app.getPath("documents");
+  const appStorePath = path.join(docsPath, "mcgs", "mcgs_sports");
+  if (!fs.existsSync(appStorePath)) {
+    fs.mkdirSync(appStorePath, { recursive: true });
+  }
+  return appStorePath;
 }

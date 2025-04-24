@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import { api as apiExtention } from "./handlers/rendererHandler";
 
 function getVersion() {
   ipcRenderer.invoke("app:version");
@@ -29,5 +30,6 @@ const api = {
   handleMinimize,
   handleMaximise,
   handleRestore,
+  ...apiExtention,
 };
 export default api;

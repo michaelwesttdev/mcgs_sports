@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import SQLiteDatabase from "better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { DatabaseConfig, SQL, Transaction } from "@/shared/types/db";
-import { getDbUrl } from "@/shared/helpers/urls";
+import { getMainDbUrl } from "@/shared/helpers/urls";
 
 export class Database {
   private sqlite: ReturnType<typeof this.initializeDatabase>;
@@ -17,7 +17,7 @@ export class Database {
   private initializeDatabase() {
     try {
       // Ensure app data directory exists
-      const dbPath = this.config.dbPath ?? getDbUrl();
+      const dbPath = this.config.dbPath ?? getMainDbUrl();
       const sqliteInstance = new SQLiteDatabase(dbPath, {
         verbose: this.config.debug ? console.log : undefined,
       });
@@ -46,7 +46,7 @@ export class Database {
       const migrationsFolder =
         this.config.migrationsPath || `${__dirname}/${folder}/drizzle`;
 
-      const sqlite = new SQLiteDatabase(this.config.dbPath ?? getDbUrl());
+      const sqlite = new SQLiteDatabase(this.config.dbPath ?? getMainDbUrl());
       const db = drizzle(sqlite, { schema: this.config.schema });
 
       console.info("⌛Running migrations...");
@@ -91,11 +91,7 @@ export class Database {
   }
 }
 
-export function initDb(schema: any) {
-  const db = new Database({
-    schema: schema,
-    migrate: true,
-    debug: process.env.NODE_ENV !== "production",
-  });
+export function initDb(schema: any, config: DatabaseConfig) {
+  const db = new Database(config);
   return db;
 }

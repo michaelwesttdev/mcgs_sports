@@ -1,14 +1,9 @@
 import {
-  Book,
-  BookMinus,
-  BookUp,
-  BookUser,
-  Home,
-  Users,
   type LucideIcon,
-  BookPlus,
   Settings,
   HelpCircle,
+  LayoutDashboard,
+  Shell,
 } from "lucide-react";
 export type NavLink = {
   title: string;
@@ -18,41 +13,14 @@ export type NavLink = {
 };
 export const nav_links: NavLink[] = [
   {
-    title: "Home",
+    title: "Dashboard",
     path: "/",
-    Icon: Home,
+    Icon: LayoutDashboard,
   },
   {
-    title: "Students",
-    path: "/students",
-    Icon: BookUser,
-  },
-  {
-    title: "Staff",
-    path: "/staff",
-    Icon: Users,
-  },
-  {
-    title: "Books",
-    path: "/books/main",
-    Icon: Book,
-    subLinks: [
-      {
-        title: "Issue Book",
-        path: "/books/lend",
-        Icon: BookUp,
-      },
-      {
-        title: "Bulk Lend to Staff",
-        path: "/books/bulk-lend",
-        Icon: BookPlus,
-      },
-      {
-        title: "Overdue",
-        path: "/books/borrowed/?filterStatus=overdue",
-        Icon: BookMinus,
-      },
-    ],
+    title: "Sessions",
+    path: "/sessions",
+    Icon: Shell,
   },
 ];
 

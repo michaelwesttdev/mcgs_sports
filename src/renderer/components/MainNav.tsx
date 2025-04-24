@@ -22,10 +22,10 @@ export default function MainNav({ collapsed }: Readonly<MainNavProps>) {
       )}>
       <header className='h-16 flex items-center px-4 border-b text-white'>
         {!collapsed ? (
-          <h1 className='text-xl font-bold'>MCS</h1>
+          <h1 className='text-[22px] font-bold'>MCGS</h1>
         ) : (
           <div className='w-full flex justify-center'>
-            <span className='font-bold text-xl'>MCS</span>
+            <span className='font-bold text-[18px]'>MCGS</span>
           </div>
         )}
       </header>
