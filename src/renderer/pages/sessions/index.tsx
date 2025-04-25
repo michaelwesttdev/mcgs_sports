@@ -4,28 +4,20 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { PlusCircle } from "lucide-react";
 import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
-
-const sessionsData = [
-  {
-    id: 1,
-    name: "MCC Interhouse athletics",
-    category: "Athletics",
-    year: "2024",
-  },
-  { id: 2, name: "MCS Swimming gala", category: "Swimming", year: "2025" },
-];
+import { useSession } from "@/renderer/hooks/use_session";
+import { useDiscipline } from "@/renderer/hooks/use_discipline";
 type Props = {};
 
 export default function SessionsPage({}: Props) {
-  const [searchName, setSearchName] = useState("");
-  const [searchCategory, setSearchCategory] = useState("");
-  const [searchYear, setSearchYear] = useState("");
+  const [searchTitle, setSearchTitle] = useState("");
+  const [searchDescipline, setSearchDescipline] = useState("");
+  const {sessions} = useSession();
+  const {disciplines} = useDiscipline()
 
-  const filteredSessions = sessionsData.filter(
+  const filteredSessions = sessions.filter(
     (session) =>
-      session.name.toLowerCase().includes(searchName.toLowerCase()) &&
-      session.category.toLowerCase().includes(searchCategory.toLowerCase()) &&
-      session.year.includes(searchYear)
+      session.title.toLowerCase().includes(searchTitle.toLowerCase()) &&
+      session.disciplineId===searchDescipline
   );
 
   return (
@@ -37,19 +29,14 @@ export default function SessionsPage({}: Props) {
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
         <Input
-          placeholder='Search by name'
-          value={searchName}
-          onChange={(e) => setSearchName(e.target.value)}
+          placeholder='Search by title'
+          value={searchTitle}
+          onChange={(e) => setSearchTitle(e.target.value)}
         />
         <Input
-          placeholder='Search by category'
-          value={searchCategory}
-          onChange={(e) => setSearchCategory(e.target.value)}
-        />
-        <Input
-          placeholder='Search by year'
-          value={searchYear}
-          onChange={(e) => setSearchYear(e.target.value)}
+          placeholder='Search by descipline'
+          value={searchDescipline}
+          onChange={(e) => setSearchDescipline(e.target.value)}
         />
       </div>
 
@@ -57,11 +44,11 @@ export default function SessionsPage({}: Props) {
         {filteredSessions.map((session) => (
           <Card key={session.id} className='rounded-2xl shadow-md'>
             <CardContent className='p-4'>
-              <h2 className='text-lg font-semibold'>{session.name}</h2>
+              <h2 className='text-lg font-semibold'>{session.title}</h2>
               <p className='text-sm text-gray-500'>
-                Category: {session.category}
+                Descipline: {disciplines.find(d=>d.id===session.disciplineId)?.name}
               </p>
-              <p className='text-sm text-gray-500'>Year: {session.year}</p>
+              <p className='text-sm text-gray-500'>Year: {new Date(session.date).getFullYear()}</p>
             </CardContent>
           </Card>
         ))}

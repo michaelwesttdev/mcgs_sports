@@ -145,6 +145,7 @@ export default function NewSessionDialogForm() {
                 </FormItem>
               )}
             />
+            <Button>Create</Button>
           </form>
         </Form>
       </DialogContent>

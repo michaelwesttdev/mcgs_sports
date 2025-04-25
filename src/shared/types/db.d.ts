@@ -34,3 +34,11 @@ export interface MainEvent extends BaseTable {
   disciplineId: string;
   type: "team" | "individual";
 }
+
+export interface Session extends BaseTable {
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  disciplineId: string;
+}
