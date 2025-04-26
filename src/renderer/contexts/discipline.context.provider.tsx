@@ -1,21 +1,24 @@
-import { Discipline } from "@/shared/types/db";
 import { nanoid } from "nanoid";
 import React, { useEffect, useState } from "react";
 import { Toast } from "../components/Toast";
+import { MDiscipline } from "@/db/sqlite/main/schema";
 
 type Props = { children: React.ReactNode };
 
 interface DisciplineContextProps {
   listAllDisciplines: () => void;
   createDiscipline: (
-    discipline: Omit<Discipline, "id" | "createdAt" | "updatedAt" | "deletedAt">
+    discipline: Omit<
+      MDiscipline,
+      "id" | "createdAt" | "updatedAt" | "deletedAt"
+    >
   ) => Promise<boolean>;
   deleteDiscipline: (id: string) => Promise<boolean>;
   updateDiscipline: (
     id: string,
-    discipline: Partial<Discipline>
+    discipline: Partial<MDiscipline>
   ) => Promise<boolean>;
-  disciplines: Discipline[];
+  disciplines: MDiscipline[];
   loading: boolean;
   error: Error | null;
 }
@@ -31,7 +34,7 @@ export const DisciplineContext = React.createContext<DisciplineContextProps>({
 });
 
 export default function DisciplineContextProvider({ children }: Props) {
-  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [disciplines, setDisciplines] = useState<MDiscipline[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   async function listAllDisciplines() {
@@ -48,7 +51,10 @@ export default function DisciplineContextProvider({ children }: Props) {
     }
   }
   async function createDiscipline(
-    discipline: Omit<Discipline, "id" | "createdAt" | "updatedAt" | "deletedAt">
+    discipline: Omit<
+      MDiscipline,
+      "id" | "createdAt" | "updatedAt" | "deletedAt"
+    >
   ) {
     setLoading(true);
     try {
@@ -93,7 +99,10 @@ export default function DisciplineContextProvider({ children }: Props) {
       setLoading(false);
     }
   }
-  async function updateDiscipline(id: string, discipline: Partial<Discipline>) {
+  async function updateDiscipline(
+    id: string,
+    discipline: Partial<MDiscipline>
+  ) {
     setLoading(true);
     try {
       const response = await window.api.mainUpdateDiscipline([id, discipline]);

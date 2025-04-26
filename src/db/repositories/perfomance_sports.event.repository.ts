@@ -1,10 +1,8 @@
 import { Database } from "../sqlite";
-import { Event } from "../sqlite/p_sports/schema";
+import { Event, PSEvent } from "../sqlite/p_sports/schema";
 import { BaseRepository } from "./base.repository";
 
-export class PerfomanceSportsEventRepository extends BaseRepository<
-  typeof Event.$inferSelect
-> {
+export class PerfomanceSportsEventRepository extends BaseRepository<PSEvent> {
   constructor(db: Database) {
     super(db, Event);
   }

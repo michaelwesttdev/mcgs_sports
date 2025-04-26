@@ -29,15 +29,15 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useDiscipline } from "../hooks/use_discipline";
-import { Discipline } from "@/shared/types/db";
 import { NotebookPen } from "lucide-react";
+import { MDiscipline } from "@/db/sqlite/main/schema";
 
 export default function NewDisciplineDialogForm({
   discipline,
   purpose = "create",
 }: Readonly<{
   purpose?: "create" | "edit";
-  discipline?: Discipline;
+  discipline?: MDiscipline;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
   const { createDiscipline, listAllDisciplines, updateDiscipline } =
@@ -73,7 +73,7 @@ export default function NewDisciplineDialogForm({
       Toast({ message: error.message, variation: "error" });
     }
   }
-  async function onEditSubmit(data: Partial<Discipline>) {
+  async function onEditSubmit(data: Partial<MDiscipline>) {
     const validated = NewDisciplineSchema.safeParse(data);
     try {
       if (validated.error) {

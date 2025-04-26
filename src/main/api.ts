@@ -22,6 +22,12 @@ function handleMaximise() {
 function handleRestore() {
   ipcRenderer.send("win:restore");
 }
+async function handleSessionDbCreate(id: string) {
+  return await ipcRenderer.invoke("session:createDbContext", id);
+}
+async function handleSessionDbClose(id: string) {
+  return await ipcRenderer.invoke("session:closeDbContext", id);
+}
 const api = {
   getVersion,
   getSettings,
@@ -30,6 +36,8 @@ const api = {
   handleMinimize,
   handleMaximise,
   handleRestore,
+  handleSessionDbCreate,
+  handleSessionDbClose,
   ...apiExtention,
 };
 export default api;

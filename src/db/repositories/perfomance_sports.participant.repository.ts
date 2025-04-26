@@ -1,10 +1,8 @@
 import { Database } from "../sqlite";
-import { Participant } from "../sqlite/p_sports/schema";
+import { Participant, PSParticipant } from "../sqlite/p_sports/schema";
 import { BaseRepository } from "./base.repository";
 
-export class PerfomanceSportsParticipantRepository extends BaseRepository<
-  typeof Participant.$inferSelect
-> {
+export class PerfomanceSportsParticipantRepository extends BaseRepository<PSParticipant> {
   constructor(db: Database) {
     super(db, Participant);
   }

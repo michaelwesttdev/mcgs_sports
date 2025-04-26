@@ -24,6 +24,7 @@ import { Button } from "./ui/button";
 import SeachableSelectWithCreationLogic from "./seachableSelectWithCreationLogic";
 import { z } from "zod";
 import { useDiscipline } from "../hooks/use_discipline";
+import { useSession } from "../hooks/use_session";
 
 const defaultValues: NewSessionSchemaType = {
   title: "",
@@ -36,6 +37,7 @@ const defaultValues: NewSessionSchemaType = {
 export default function NewSessionDialogForm() {
   const [open, setOpen] = React.useState(false);
   const { disciplines } = useDiscipline();
+  const { createSession } = useSession();
   const form = useForm({
     defaultValues,
     resolver: zodResolver(NewSessionSchema),
@@ -46,9 +48,18 @@ export default function NewSessionDialogForm() {
       if (validated.error) {
         throw new Error(validated.error.message);
       }
-      const res = await (window.api as any).mainCreateSession(validated.data);
-      if (!res.success) throw new Error(res.error);
-      Toast({ message: "Session created successfully", variation: "success" });
+      const d = validated.data;
+      const res = await createSession({
+        title: d.title,
+        date: d.date,
+        time: d.time,
+        location: d.location,
+        disciplineId: d.disciplineId,
+      });
+      if (res) {
+        setOpen(false);
+        form.reset();
+      }
     } catch (error) {
       console.log(error);
       Toast({ message: error.message, variation: "error" });

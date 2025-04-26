@@ -1,5 +1,4 @@
-import { useContext, useEffect } from "react";
-import { DisciplineContext } from "../contexts/discipline.context.provider";
+import { useContext } from "react";
 import { EventContext } from "../contexts/event.context.provider";
 
 export function useEvents() {

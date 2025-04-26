@@ -1,4 +1,4 @@
-import { sqliteTable, text, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, index, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 // Helper for timestamps
 const timestamps = {
@@ -31,6 +31,7 @@ const Event = sqliteTable("event", {
     .notNull()
     .references(() => Discipline.id, { onDelete: "cascade" }),
   type: text("type", { enum: ["team", "individual"] }).notNull(),
+  ageGroup: integer("age_group"),
   ...timestamps,
 });
 // sessions
@@ -49,3 +50,7 @@ const Session = sqliteTable("session", {
 });
 
 export { Discipline, Event, Session };
+
+export type MEvent = typeof Event.$inferSelect;
+export type MDiscipline = typeof Discipline.$inferSelect;
+export type MSession = typeof Session.$inferSelect;

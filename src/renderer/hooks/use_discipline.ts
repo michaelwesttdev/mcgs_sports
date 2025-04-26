@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { DisciplineContext } from "../contexts/discipline.context.provider";
 
 export function useDiscipline() {
@@ -10,4 +10,3 @@ export function useDiscipline() {
   }
   return context;
 }
-                      

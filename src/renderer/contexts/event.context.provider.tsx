@@ -1,18 +1,18 @@
-import { Discipline, MainEvent } from "@/shared/types/db";
 import { nanoid } from "nanoid";
 import React, { useEffect, useState } from "react";
 import { Toast } from "../components/Toast";
+import { MEvent } from "@/db/sqlite/main/schema";
 
 type Props = { children: React.ReactNode };
 
 interface EventContextProps {
   listAllEvents: () => void;
   createEvent: (
-    event: Omit<MainEvent, "id" | "createdAt" | "updatedAt" | "deletedAt">
+    event: Omit<MEvent, "id" | "createdAt" | "updatedAt" | "deletedAt">
   ) => Promise<boolean>;
   deleteEvent: (id: string) => Promise<boolean>;
-  updateEvent: (id: string, discipline: Partial<MainEvent>) => Promise<boolean>;
-  events: MainEvent[];
+  updateEvent: (id: string, discipline: Partial<MEvent>) => Promise<boolean>;
+  events: MEvent[];
   loading: boolean;
   error: Error | null;
 }
@@ -28,7 +28,7 @@ export const EventContext = React.createContext<EventContextProps>({
 });
 
 export default function EventContextProvider({ children }: Props) {
-  const [events, setEvents] = useState<MainEvent[]>([]);
+  const [events, setEvents] = useState<MEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   async function listAllEvents() {
@@ -45,7 +45,7 @@ export default function EventContextProvider({ children }: Props) {
     }
   }
   async function createEvent(
-    event: Omit<MainEvent, "id" | "createdAt" | "updatedAt" | "deletedAt">
+    event: Omit<MEvent, "id" | "createdAt" | "updatedAt" | "deletedAt">
   ) {
     setLoading(true);
     try {

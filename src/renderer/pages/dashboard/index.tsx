@@ -1,9 +1,9 @@
+import { MDiscipline } from "@/db/sqlite/main/schema";
 import NewDisciplineDialogForm from "@/renderer/components/NewDisciplineDialogForm";
 import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
 import { Button } from "@/renderer/components/ui/button";
 import { Card, CardContent } from "@/renderer/components/ui/card";
 import { useDiscipline } from "@/renderer/hooks/use_discipline";
-import { Discipline } from "@/shared/types/db";
 import { format } from "date-fns";
 import React, { useEffect } from "react";
 
@@ -24,7 +24,7 @@ function DashboardPageHeader() {
 function DashboardPageQuickActions({
   disciplines,
 }: {
-  disciplines: Discipline[];
+  disciplines: MDiscipline[];
 }) {
   return (
     <Card className='my-4'>

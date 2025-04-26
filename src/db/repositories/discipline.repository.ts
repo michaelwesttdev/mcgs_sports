@@ -1,10 +1,8 @@
 import { Database } from "../sqlite";
-import { Discipline } from "../sqlite/main/schema";
+import { Discipline, MDiscipline } from "../sqlite/main/schema";
 import { BaseRepository } from "./base.repository";
 
-export class DisciplineRepository extends BaseRepository<
-  typeof Discipline.$inferSelect
-> {
+export class DisciplineRepository extends BaseRepository<MDiscipline> {
   constructor(db: Database) {
     super(db, Discipline);
   }

@@ -6,19 +6,34 @@ import { PlusCircle } from "lucide-react";
 import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
 import { useSession } from "@/renderer/hooks/use_session";
 import { useDiscipline } from "@/renderer/hooks/use_discipline";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/renderer/components/ui/select";
+import { useNavigate } from "react-router";
 type Props = {};
 
 export default function SessionsPage({}: Props) {
   const [searchTitle, setSearchTitle] = useState("");
-  const [searchDescipline, setSearchDescipline] = useState("");
-  const {sessions} = useSession();
-  const {disciplines} = useDiscipline()
-
-  const filteredSessions = sessions.filter(
-    (session) =>
-      session.title.toLowerCase().includes(searchTitle.toLowerCase()) &&
-      session.disciplineId===searchDescipline
-  );
+  const [searchDescipline, setSearchDescipline] = useState("all");
+  const { sessions } = useSession();
+  const { disciplines } = useDiscipline();
+  const navigate = useNavigate();
+  const filteredSessions = sessions.filter((session) => {
+    const titleMatch = session.title
+      .toLowerCase()
+      .includes(searchTitle.toLowerCase());
+    const disciplineMatch =
+      searchDescipline === "all"
+        ? true
+        : session.disciplineId
+            .toLowerCase()
+            .includes(searchDescipline.toLowerCase());
+    return titleMatch && disciplineMatch;
+  });
 
   return (
     <div className='p-6 space-y-6'>
@@ -33,22 +48,40 @@ export default function SessionsPage({}: Props) {
           value={searchTitle}
           onChange={(e) => setSearchTitle(e.target.value)}
         />
-        <Input
-          placeholder='Search by descipline'
+        <Select
           value={searchDescipline}
-          onChange={(e) => setSearchDescipline(e.target.value)}
-        />
+          onValueChange={(value) => setSearchDescipline(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder='filter by discipline' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>All</SelectItem>
+            {disciplines.map((discipline) => (
+              <SelectItem key={discipline.id} value={discipline.id}>
+                {discipline.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className='grid gap-4'>
         {filteredSessions.map((session) => (
-          <Card key={session.id} className='rounded-2xl shadow-md'>
+          <Card
+            key={session.id}
+            onClick={() => {
+              navigate(`/sessions/${session.id}`);
+            }}
+            className='rounded-2xl shadow-md cursor-pointer select-none hover:scale-105 transition-all duration-200'>
             <CardContent className='p-4'>
               <h2 className='text-lg font-semibold'>{session.title}</h2>
               <p className='text-sm text-gray-500'>
-                Descipline: {disciplines.find(d=>d.id===session.disciplineId)?.name}
+                Descipline:{" "}
+                {disciplines.find((d) => d.id === session.disciplineId)?.name}
               </p>
-              <p className='text-sm text-gray-500'>Year: {new Date(session.date).getFullYear()}</p>
+              <p className='text-sm text-gray-500'>
+                Year: {new Date(session.date).getFullYear()}
+              </p>
             </CardContent>
           </Card>
         ))}

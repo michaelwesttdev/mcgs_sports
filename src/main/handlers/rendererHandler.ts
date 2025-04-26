@@ -37,27 +37,27 @@ const apiExtension = {
     ipcRenderer.invoke("main:discipline:list", payload),
 
   psCreateEvent: (payload: any) =>
-    ipcRenderer.invoke("ps:event:create", payload),
+    ipcRenderer.invoke("ps:event:create", ...payload),
   psReadEvent: (payload: any) => ipcRenderer.invoke("ps:event:read", payload),
   psUpdateEvent: (payload: any) =>
-    ipcRenderer.invoke("ps:event:update", payload),
+    ipcRenderer.invoke("ps:event:update", ...payload),
   psDeleteEvent: (payload: any) =>
     ipcRenderer.invoke("ps:event:delete", payload),
   psListEvent: (payload: any) => ipcRenderer.invoke("ps:event:list", payload),
   psCreateHouse: (payload: any) =>
-    ipcRenderer.invoke("ps:house:create", payload),
+    ipcRenderer.invoke("ps:house:create", ...payload),
   psReadHouse: (payload: any) => ipcRenderer.invoke("ps:house:read", payload),
   psUpdateHouse: (payload: any) =>
-    ipcRenderer.invoke("ps:house:update", payload),
+    ipcRenderer.invoke("ps:house:update", ...payload),
   psDeleteHouse: (payload: any) =>
     ipcRenderer.invoke("ps:house:delete", payload),
   psListHouse: (payload: any) => ipcRenderer.invoke("ps:house:list", payload),
   psCreateParticipant: (payload: any) =>
-    ipcRenderer.invoke("ps:participant:create", payload),
+    ipcRenderer.invoke("ps:participant:create", ...payload),
   psReadParticipant: (payload: any) =>
     ipcRenderer.invoke("ps:participant:read", payload),
   psUpdateParticipant: (payload: any) =>
-    ipcRenderer.invoke("ps:participant:update", payload),
+    ipcRenderer.invoke("ps:participant:update", ...payload),
   psDeleteParticipant: (payload: any) =>
     ipcRenderer.invoke("ps:participant:delete", payload),
   psListParticipant: (payload: any) =>

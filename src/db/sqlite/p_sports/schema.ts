@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, InferColumnsDataTypes } from "drizzle-orm";
 // Helper for timestamps
 const timestamps = {
   createdAt: text("created_at")
@@ -27,7 +27,9 @@ const Participant = sqliteTable(
     lastName: text("last_name", { length: 255 }).notNull(),
     age: integer("age").notNull(),
     gender: text("gender", { enum: ["male", "female"] }).notNull(),
-    houseId: text("house_id").references(() => House.id),
+    houseId: text("house_id").references(() => House.id, {
+      onDelete: "cascade",
+    }),
     ...timestamps,
   },
   (table) => [
@@ -45,7 +47,22 @@ const Event = sqliteTable("event", {
   recordHolder: text("record_holder"),
   recordingMetric: text("recording_metric"),
   record: text("record"),
+  status: text("status", { enum: ["pending", "complete"] }),
+  ...timestamps,
+});
+const EventResult = sqliteTable("event_result", {
+  id: text("id").primaryKey().notNull(),
+  eventId: text("event_id").references(() => Event.id, { onDelete: "cascade" }),
+  participantId: text("participant_id"),
+  participantType: text("participant_type", { enum: ["house", "participant"] }),
+  position: integer("position").notNull(),
+  measurement: text("measurement"),
   ...timestamps,
 });
 
 export { Participant, Event, House };
+
+export type PSParticipant = typeof Participant.$inferSelect;
+export type PSEvent = typeof Event.$inferSelect;
+export type PSHouse = typeof House.$inferSelect;
+export type PSEventResult = typeof EventResult.$inferSelect;

@@ -34,17 +34,17 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useDiscipline } from "../hooks/use_discipline";
-import { Discipline, MainEvent } from "@/shared/types/db";
 import { NotebookPen } from "lucide-react";
 import { useEvents } from "../hooks/use_events";
 import { Textarea } from "./ui/textarea";
+import { MEvent } from "@/db/sqlite/main/schema";
 
 export default function NewEventDialogForm({
   event,
   purpose = "create",
 }: Readonly<{
   purpose?: "create" | "edit";
-  event?: MainEvent;
+  event?: MEvent;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
   const { createEvent, listAllEvents, updateEvent } = useEvents();
@@ -73,6 +73,7 @@ export default function NewEventDialogForm({
         type: validated.data.type,
         disciplineId: validated.data.disciplineId,
         description: validated.data.description,
+        ageGroup: 14,
       });
       if (res) {
         await listAllEvents();
@@ -84,7 +85,7 @@ export default function NewEventDialogForm({
       Toast({ message: error.message, variation: "error" });
     }
   }
-  async function onEditSubmit(data: Partial<MainEvent>) {
+  async function onEditSubmit(data: Partial<MEvent>) {
     const validated = NewMainEventSchema.safeParse(data);
     try {
       if (validated.error) {

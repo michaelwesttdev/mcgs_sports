@@ -86,3 +86,10 @@ const PlayerEventStats = sqliteTable(
 );
 
 export { Team, Player, TeamEvent, TeamEventParticipation, PlayerEventStats };
+
+export type TSTeam = typeof Team.$inferSelect;
+export type TSPlayer = typeof Player.$inferSelect;
+export type TSTeamEvent = typeof TeamEvent.$inferSelect;
+export type TSTeamEventParticipation =
+  typeof TeamEventParticipation.$inferSelect;
+export type TSPlayerEventStats = typeof PlayerEventStats.$inferSelect;

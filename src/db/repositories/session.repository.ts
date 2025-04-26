@@ -1,10 +1,8 @@
 import { Database } from "../sqlite";
-import { Session } from "../sqlite/main/schema";
+import { MSession, Session } from "../sqlite/main/schema";
 import { BaseRepository } from "./base.repository";
 
-export class SessionRepository extends BaseRepository<
-  typeof Session.$inferSelect
-> {
+export class SessionRepository extends BaseRepository<MSession> {
   constructor(db: Database) {
     super(db, Session);
   }

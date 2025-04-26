@@ -77,60 +77,65 @@ export class MainHandler {
     ];
 
     channels.forEach((channel) => {
-      ipcMain.handle(
-        channel,
-        async (
-          _,
-          args: {
-            sessionId: string;
-            data: any[];
+      ipcMain.handle(channel, async (_, ...args: any[]) => {
+        console.log("handling PS:", channel, "args:", args);
+        try {
+          const [_, repoKey, operation] = channel.split(":") as [
+            string,
+            keyof PerformanceSportsDBContext,
+            keyof BaseRepository<any>
+          ];
+          const [sessionId, data] = args;
+          console.log("found sessionId:", sessionId);
+          console.log("found data:", data);
+          let context = this.p_sessionsContexts.get(sessionId).context;
+          if (!context) {
+            const db = initDb(PsSchema, {
+              schema: PsSchema,
+              dbPath: getSessionDbPath(sessionId),
+              migrate: true,
+              migrationsPath: `${__dirname}/p_sports/drizzle`,
+            });
+            const newContext = new PerformanceSportsDBContext(db);
+            this.p_sessionsContexts.set(sessionId, {
+              db,
+              context: newContext,
+            });
+            context = newContext;
           }
-        ) => {
-          try {
-            const [_, repoKey, operation] = channel.split(":") as [
-              string,
-              keyof PerformanceSportsDBContext,
-              keyof BaseRepository<any>
-            ];
-            let context = this.p_sessionsContexts.get(args.sessionId).context;
-            if (!context) {
-              const db = initDb(PsSchema, {
-                schema: PsSchema,
-                dbPath: getSessionDbPath(args.sessionId),
-                migrate: true,
-                migrationsPath: `${__dirname}/p_sports/migrations`,
-              });
-              const newContext = new PerformanceSportsDBContext(db);
-              this.p_sessionsContexts.set(args.sessionId, {
-                db,
-                context: newContext,
-              });
-              context = newContext;
-            }
-            const repo = context[repoKey] as any;
-            const result = await repo[operation](...args.data);
-            return { success: true, data: result };
-          } catch (error) {
-            this.handleError(error);
-          }
+          console.log("found context");
+          const repo = context[repoKey] as any;
+          console.log("found repo");
+          const result = await repo[operation](data);
+          console.log("result:", result);
+
+          return { success: true, data: result };
+        } catch (error) {
+          this.handleError(error);
         }
-      );
+      });
     });
   }
 
   registerCustomHandlers() {
     ipcMain.handle("session:createDbContext", async (_, args: string) => {
+      console.log("creating db context for session:", args);
       try {
         let context = this.p_sessionsContexts.get(args);
         if (context) {
           return { success: true };
         }
+        const dbPath = getSessionDbPath(args);
+        const migrationsPath = `${__dirname}/p_sports/drizzle`;
+        console.log("migrationsPath:", migrationsPath);
+        console.log("dbPath:", dbPath);
         const db = initDb(PsSchema, {
           schema: PsSchema,
-          dbPath: getSessionDbPath(args),
+          dbPath: dbPath,
           migrate: true,
-          migrationsPath: `${__dirname}/p_sports/migrations`,
+          migrationsPath: migrationsPath,
         });
+
         const c = new PerformanceSportsDBContext(db);
         this.p_sessionsContexts.set(args, {
           db,
