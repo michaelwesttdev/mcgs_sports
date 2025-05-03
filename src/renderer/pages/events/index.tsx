@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { Trash } from "lucide-react";
-import { useDiscipline } from "@/renderer/hooks/use_discipline";
+import {Copy, Trash} from "lucide-react";
+import { useDiscipline } from "~/hooks/use_discipline";
 import {
   Select,
   SelectContent,
@@ -11,14 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/renderer/components/ui/select";
-import { useEvents } from "@/renderer/hooks/use_events";
-import NewEventDialogForm from "@/renderer/components/NewEventDialogForm";
+import { useEvents } from "~/hooks/use_events";
+import NewEventDialogForm from "~/components/new-event-dialog-form";
+import {BiDuplicate} from "react-icons/bi";
+import {DeleteModal} from "~/components/deleteModal";
+import {getGenderName} from "@/shared/genderName";
 
 export default function EventsPage() {
   const [searchTitle, setSearchTitle] = useState("");
   const [searchDiscipline, setSearchDiscipline] = useState("");
   const { disciplines, listAllDisciplines } = useDiscipline();
-  const { events, listAllEvents } = useEvents();
+  const { events, listAllEvents,duplicateEvent,deleteEvent } = useEvents();
 
   const filteredEvents = events.filter((event) => {
     const matchesTitle = event.title
@@ -83,16 +86,30 @@ export default function EventsPage() {
               <div className='flex-1'>
                 <h2 className='text-lg font-semibold'>{event.title}</h2>
                 <p className='text-sm text-gray-500'>
+                  {`Age group: U${event.ageGroup} - ${event.gender === "male"?"Boys":event.gender==="female"?"Girls":"Mixed"}`}
+                </p>
+                <p className='text-sm text-gray-500'>
                   Discipline:{" "}
                   {disciplines.find((d) => d.id === event.disciplineId)?.name ??
-                    "N/A"}
+                      "N/A"}
                 </p>
               </div>
               <aside className='grid gap-3'>
-                <Button variant='destructive' className='w-6 h-6' size='icon'>
-                  <Trash />
-                </Button>
+
+                <DeleteModal itemName={`${event.title} - U${event.ageGroup} (${getGenderName(event.gender)})`} onDelete={async()=>{
+                  await deleteEvent(event.id);
+                }} trigger={<Button variant='destructive' className='w-6 h-6' size='icon'>
+                  <Trash/>
+                </Button>}/>
                 <NewEventDialogForm event={event} purpose='edit' />
+                <Button
+                  variant='outline'
+                  size='icon'
+                  className='w-6 h-6'
+                  onClick={async()=>await duplicateEvent(event)}
+                >
+                  <BiDuplicate/>
+                  </Button>
               </aside>
             </CardContent>
           </Card>

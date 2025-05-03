@@ -1,4 +1,10 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  text,
+  integer,
+  index,
+  SQLiteBoolean,
+} from "drizzle-orm/sqlite-core";
 import { sql, InferColumnsDataTypes } from "drizzle-orm";
 // Helper for timestamps
 const timestamps = {
@@ -25,7 +31,7 @@ const Participant = sqliteTable(
     id: text("id").primaryKey().notNull(),
     firstName: text("first_name", { length: 255 }).notNull(),
     lastName: text("last_name", { length: 255 }).notNull(),
-    age: integer("age").notNull(),
+    dob: text("age").notNull(),
     gender: text("gender", { enum: ["male", "female"] }).notNull(),
     houseId: text("house_id").references(() => House.id, {
       onDelete: "cascade",
@@ -44,10 +50,13 @@ const Event = sqliteTable("event", {
   title: text("title", { length: 255 }).notNull(),
   description: text("description"),
   type: text("type", { enum: ["team", "individual"] }).notNull(),
+  ageGroup: integer("age_group"),
+  gender: text("gender", { enum: ["male", "female", "mixed"] }).notNull(),
   recordHolder: text("record_holder"),
-  recordingMetric: text("recording_metric"),
+  measurementMetric: text("measurement_metric"),
   record: text("record"),
   status: text("status", { enum: ["pending", "complete"] }),
+  isRecordBroken: integer("is_record_broken", { mode: "boolean" }),
   ...timestamps,
 });
 const EventResult = sqliteTable("event_result", {
@@ -57,6 +66,7 @@ const EventResult = sqliteTable("event_result", {
   participantType: text("participant_type", { enum: ["house", "participant"] }),
   position: integer("position").notNull(),
   measurement: text("measurement"),
+  points: integer("points").notNull(),
   ...timestamps,
 });
 

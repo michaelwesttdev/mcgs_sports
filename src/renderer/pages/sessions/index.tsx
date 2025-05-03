@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -19,7 +19,7 @@ type Props = {};
 export default function SessionsPage({}: Props) {
   const [searchTitle, setSearchTitle] = useState("");
   const [searchDescipline, setSearchDescipline] = useState("all");
-  const { sessions } = useSession();
+  const { sessions, listAllSessions } = useSession();
   const { disciplines } = useDiscipline();
   const navigate = useNavigate();
   const filteredSessions = sessions.filter((session) => {
@@ -34,6 +34,12 @@ export default function SessionsPage({}: Props) {
             .includes(searchDescipline.toLowerCase());
     return titleMatch && disciplineMatch;
   });
+
+  useEffect(() => {
+    (async () => {
+      await listAllSessions();
+    })();
+  }, []);
 
   return (
     <div className='p-6 space-y-6'>

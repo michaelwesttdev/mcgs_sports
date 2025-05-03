@@ -1,0 +1,265 @@
+import React, { useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Input } from "~/components/ui/input"
+import { Toast } from "~/components/Toast"
+import { Button } from "~/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
+import { Textarea } from "~/components/ui/textarea"
+import { NotebookPen } from "lucide-react"
+import { z } from "zod"
+import { useDiscipline } from "~/hooks/use_discipline"
+import {MEvent} from "@/db/sqlite/main/schema";
+import {useEvents} from "~/hooks/use_events";
+import {ScrollArea} from "~/components/ui/scroll-area";
+
+// Define the schema for the Event form
+const NewEventSchema = z.object({
+  title: z.string().min(1, { message: "Title is required" }),
+  description: z.string().optional(),
+  disciplineId: z.string().min(1, { message: "Discipline is required" }),
+  type: z.enum(["team", "individual"]),
+  ageGroup: z.number().optional(),
+  gender: z.enum(["male", "female", "mixed"]),
+  measurementMetric: z.string().optional(),
+})
+
+type NewEventSchemaType = z.infer<typeof NewEventSchema>
+
+export default function NewEventDialogForm({
+  event,
+  purpose = "create",
+}: Readonly<{
+  purpose?: "create" | "edit"
+  event?: MEvent // Replace with your Event type
+}>) {
+  const [isOpen, setIsOpen] = useState(false)
+    const { createEvent, listAllEvents, updateEvent } = useEvents();
+    const { disciplines } = useDiscipline();
+
+  const defaultValues: NewEventSchemaType = {
+    title: event?.title || "",
+    description: event?.description || "",
+    disciplineId: event?.disciplineId || "",
+    type: event?.type || "individual",
+    ageGroup: event?.ageGroup || undefined,
+    gender: event?.gender || "mixed",
+    measurementMetric: event?.measurementMetric || "",
+  }
+
+  const form = useForm({
+    defaultValues,
+    resolver: zodResolver(NewEventSchema),
+  })
+
+  async function onSubmit(data: NewEventSchemaType) {
+    try {
+        const validated = NewEventSchema.safeParse(data);
+
+      if (purpose === "edit") {
+          if (validated.error) {
+              throw new Error(validated.error.message);
+          }
+          const res = await updateEvent(event?.id, validated.data);
+          if (res) {
+              await listAllEvents();
+              form.reset();
+              setIsOpen(false);
+          }
+      } else {
+          if (validated.error) {
+              throw new Error(validated.error.message);
+          }
+          const res = await createEvent({
+              title: validated.data.title,
+              type: validated.data.type,
+              disciplineId: validated.data.disciplineId,
+              description: validated.data.description,
+              ageGroup: validated.data.ageGroup,
+              gender:validated.data.gender,
+              measurementMetric:validated.data.measurementMetric
+          });
+          if (res) {
+              await listAllEvents();
+              form.reset();
+              setIsOpen(false);
+          }
+      }
+
+      form.reset()
+      setIsOpen(false)
+      Toast({ message: `Event ${purpose === "create" ? "created" : "updated"} successfully`, variation: "success" })
+    } catch (error) {
+      console.error(error)
+      Toast({ message: error.message, variation: "error" })
+    }
+  }
+
+  return (
+    <Dialog
+      open={isOpen}
+      onOpenChange={(v) => {
+        if (!v) {
+          form.reset()
+        }
+        setIsOpen(v)
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size={purpose === "edit" ? "icon" : "default"}
+          className={`${purpose === "edit" ? "w-6 h-6" : ""}`}
+        >
+          {purpose === "create" ? <span>New Event</span> : <NotebookPen className="h-4 w-4" />}
+        </Button>
+      </DialogTrigger>
+        <DialogContent className="sm:max-w-[500px]"><ScrollArea className={"h-full max-h-[90dvh] px-3"}>
+            <DialogHeader>
+                <DialogTitle>{purpose === "create" ? "Create New" : "Edit"} Event</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="Event Title" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                    <Textarea {...field} placeholder="Event Description" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="disciplineId"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Discipline</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a discipline" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {disciplines.map((discipline) => (
+                                                <SelectItem key={discipline.id} value={discipline.id}>
+                                                    {discipline.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Type</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select event type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="individual">Individual</SelectItem>
+                                            <SelectItem value="team">Team</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="ageGroup"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Age Group</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        {...field}
+                                        onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : undefined)}
+                                        placeholder="Age Group"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Gender</FormLabel>
+                                <FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                            <SelectItem value="mixed">Mixed</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="measurementMetric"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Measurement Metric</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="e.g., seconds, meters, points" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <Button type="submit" className="capitalize">
+                        {purpose}
+                    </Button>
+                </form>
+            </Form></ScrollArea>
+        </DialogContent>
+
+    </Dialog>
+  )
+}

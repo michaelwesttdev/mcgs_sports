@@ -1,0 +1,1 @@
+ALTER TABLE `event` ADD `age_group` integer;

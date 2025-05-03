@@ -4,6 +4,7 @@ import { Toast } from "@/renderer/components/Toast";
 import { useEvents } from "@/renderer/hooks/use_events";
 import { useSession } from "@/renderer/hooks/use_session";
 import { useEffect, useState } from "react";
+import {nanoid} from "nanoid";
 
 export function useSessionHelper(sessionId: string) {
   const { getSession } = useSession();
@@ -59,6 +60,24 @@ export function useSessionHelper(sessionId: string) {
       setLoading(false);
     }
   }
+  async function createEvent(event:Omit<PSEvent,"id"|"createdAt"|"updatedAt"|"deletedAt">){
+    try {
+      const id = nanoid();
+      const res = await window.api.psCreateEvent([
+        sessionId,
+        {id,...event},
+      ]);
+      if (!res.success) throw new Error(res.error);
+      await fetchSessionEvents();
+      Toast({
+        message: "Event created successfully",
+        variation: "success",
+      });
+    }
+    catch (e) {
+      Toast({ message: "Error creating event", variation: "error" });
+    }
+  }
   useEffect(() => {
     if (sessionId) {
       (async () => {
@@ -79,5 +98,6 @@ export function useSessionHelper(sessionId: string) {
     importEventsFromMainStore,
     fetchSessionEvents,
     events,
+    createEvent
   };
 }

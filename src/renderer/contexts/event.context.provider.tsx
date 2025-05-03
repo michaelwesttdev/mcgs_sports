@@ -12,6 +12,7 @@ interface EventContextProps {
   ) => Promise<boolean>;
   deleteEvent: (id: string) => Promise<boolean>;
   updateEvent: (id: string, discipline: Partial<MEvent>) => Promise<boolean>;
+  duplicateEvent: (data:MEvent) => Promise<void>;
   events: MEvent[];
   loading: boolean;
   error: Error | null;
@@ -22,6 +23,7 @@ export const EventContext = React.createContext<EventContextProps>({
   createEvent: () => Promise.resolve(false),
   deleteEvent: () => Promise.resolve(false),
   updateEvent: () => Promise.resolve(false),
+  duplicateEvent: async() => {},
   events: [],
   loading: false,
   error: null,
@@ -88,10 +90,11 @@ export default function EventContextProvider({ children }: Props) {
       setLoading(false);
     }
   }
-  async function updateEvent(id: string, discipline: Partial<Event>) {
+  async function updateEvent(id: string, event: Partial<MEvent>) {
     setLoading(true);
+    console.log(event)
     try {
-      const response = await window.api.mainUpdateEvent([id, discipline]);
+      const response = await window.api.mainUpdateEvent([id, event]);
       if (!response.success) throw new Error(response.error);
       const data = await response.data;
       setEvents((prev) =>
@@ -109,6 +112,26 @@ export default function EventContextProvider({ children }: Props) {
       setLoading(false);
     }
   }
+  async function duplicateEvent(data:MEvent) {
+    try {
+      const newId = nanoid();
+      const {id,createdAt,deletedAt,updatedAt,...rest} = data;
+      const newEvent = {id:newId, ...rest};
+      const response = await window.api.mainCreateEvent(newEvent);
+      console.log(response)
+      if (!response.success) throw new Error(response.error);
+      const Resdata = await response.data;
+      setEvents((prev) => [...prev, Resdata]);
+      Toast({
+        message: "Event duplicated successfully",
+        variation: "success",
+      });
+      await listAllEvents();
+    }catch (e) {
+      console.log(e)
+      Toast({ message: "Failed to duplicate event", variation: "error" });
+    }
+  }
   useEffect(() => {
     (async () => {
       await listAllEvents();
@@ -124,6 +147,7 @@ export default function EventContextProvider({ children }: Props) {
         createEvent,
         deleteEvent,
         updateEvent,
+        duplicateEvent
       }}>
       {children}
     </EventContext.Provider>
