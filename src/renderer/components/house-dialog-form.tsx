@@ -8,12 +8,13 @@ import { Toast } from "~/components/Toast"
 import { Button } from "~/components/ui/button"
 import { NotebookPen } from "lucide-react"
 import { z } from "zod"
-import type {PSHouse} from "@/db/sqlite/p_sports/schema"
+import {PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema"
 import {useHouse} from "~/hooks/use_house";
 
 // Define the schema for the House form
-const HouseSchema = z.object({
+export const HouseSchema = z.object({
   name: z.string().min(1, { message: "House name is required" }),
+  abbreviation: z.string().optional(),
 })
 
 type HouseSchemaType = z.infer<typeof HouseSchema>
@@ -21,12 +22,19 @@ type HouseSchemaType = z.infer<typeof HouseSchema>
 export default function HouseDialogForm({
   house,
   purpose = "create",
+    onCreate,
+    onUpdate,
+    houses,
+    fetchHouses,
 }: Readonly<{
-  purpose?: "create" | "edit"
-  house?: PSHouse
+  purpose?: "create" | "edit";
+  house?: PSHouse;
+  onCreate?: (house: Omit<PSHouse,"id"|"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
+  onUpdate?: (id:string,house: Partial<PSHouse>) => Promise<void>;
+  houses:PSHouse[];
+  fetchHouses: () => Promise<void>;
 }>) {
   const [isOpen, setIsOpen] = useState(false)
-  const {createHouse,updateHouse} = useHouse()
 
   const defaultValues: HouseSchemaType = {
     name: house?.name || "",
@@ -40,10 +48,11 @@ export default function HouseDialogForm({
   async function onSubmit(data: HouseSchemaType) {
     try {
       if (purpose === "edit") {
-        await updateHouse(house?.id, data);
+        await onUpdate(house?.id, data);
       } else {
-        await createHouse({
-          name: data.name
+        await onCreate({
+          name: data.name,
+          abbreviation: data.abbreviation?? null,
         });
       }
 
@@ -89,6 +98,19 @@ export default function HouseDialogForm({
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="House Name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="abbreviation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Abbreviation</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="House Abbreviation" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

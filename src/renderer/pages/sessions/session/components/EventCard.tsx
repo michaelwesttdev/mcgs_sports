@@ -1,4 +1,4 @@
-import {PSEvent} from "@/db/sqlite/p_sports/schema";
+import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import {TableCell, TableRow} from "~/components/ui/table";
 import {Input} from "~/components/ui/input";
 import {getGenderName} from "@/shared/genderName";
@@ -7,18 +7,21 @@ import {Edit2, Save, Trash} from "lucide-react";
 import {useState} from "react";
 import SessionEventDialogForm from "~/components/session-event-dialog-form";
 import {DeleteModal} from "~/components/deleteModal";
+import PsEventResultsDialog from "~/components/ps_event_results_dialog";
+import {Badge} from "~/components/ui/badge";
 
 type EventProps = {
     event: PSEvent;
+    participants: PSParticipant[];
+    houses: PSHouse[];
     onUpdate: (eventId:string,event: Partial<PSEvent>) => Promise<void>;
     onDelete: (eventId:string) => Promise<void>;
-    onupdateresults: (event: PSEvent) => void;
-    editingId: string | null;
-    setEditingId: (id: string | null) => void;
-    sessionId:string
+    updateResult: (id:string,result:Partial<PSEventResult>) => Promise<void>;
+    createResult: (result:Omit<PSEventResult,"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
+    deleteResult: (id:string) => Promise<void>;
+    results: PSEventResult[];
 };
-export default function EventCard({ event, onUpdate, onDelete,sessionId }: EventProps) {
-
+export default function EventCard({updateResult,createResult,deleteResult,results, event, onUpdate,participants,houses, onDelete }: EventProps) {
     return (
         <TableRow key={event.id}>
             <TableCell> {event.eventNumber || "-"}</TableCell>
@@ -27,12 +30,15 @@ export default function EventCard({ event, onUpdate, onDelete,sessionId }: Event
             <TableCell className='hidden md:table-cell'>{event.recordHolder || "-"}</TableCell>
             <TableCell className='hidden md:table-cell'> {event.record ? (`${event.record} ${event.measurementMetric || ""}`) : ("-")}</TableCell>
             <TableCell>
-                {
-                    event.isRecordBroken?"New Record!":"Unchanged"
-                }
+                <Badge variant={event.isRecordBroken?"default":"outline"}>
+                    {
+                        event.isRecordBroken?"New Record!":"Unchanged"
+                    }
+                </Badge>
             </TableCell>
             <TableCell className='flex items-center gap-2 justify-end'>
                 <SessionEventDialogForm purpose={"edit"} event={event} onUpdate={onUpdate}/>
+                <PsEventResultsDialog updateEvent={onUpdate} createResult={createResult} updateResult={updateResult} results={results} deleteResult={deleteResult} participants={participants} houses={houses} eventId={event.id} eventTitle={`${event.title} - ${event.ageGroup<100?`U${event.ageGroup}`:"Open"} ${getGenderName(event.gender)}`} event={event}/>
                 <DeleteModal onDelete={async()=>await onDelete(event.id)} itemName={`event number ${event.eventNumber} (${event.title} - U${event.ageGroup} (${getGenderName((event.gender))}))`} trigger={<Button variant="destructive" size={"icon"} className={`w-6 h-6`}>
                     <Trash className={"w-4 h-4"}/>
                 </Button>}/>

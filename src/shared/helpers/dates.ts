@@ -11,3 +11,9 @@ export function addDaysToDate(date: Date, days: number) {
   const newDate = addDays(date, days);
   return newDate;
 }
+export function getAge(dob:string){
+  const dobDate = stringDateToDate(dob);
+  const today = new Date();
+  const age = today.getFullYear() - dobDate.getFullYear();
+  return age;
+}

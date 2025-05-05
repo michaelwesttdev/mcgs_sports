@@ -44,6 +44,14 @@ const apiExtension = {
   psDeleteEvent: (payload: any) =>
     ipcRenderer.invoke("ps:event:delete", ...payload),
   psListEvent: (payload: any) => ipcRenderer.invoke("ps:event:list", payload),
+  psCreateEventResult: (payload: any) =>
+      ipcRenderer.invoke("ps:event_result:create", ...payload),
+  psReadEventResult: (payload: any) => ipcRenderer.invoke("ps:event_result:read", ...payload),
+  psUpdateEventResult: (payload: any) =>
+      ipcRenderer.invoke("ps:event_result:update", ...payload),
+  psDeleteEventResult: (payload: any) =>
+      ipcRenderer.invoke("ps:event_result:delete", ...payload),
+  psListEventResults: (payload: any) => ipcRenderer.invoke("ps:event_result:list", payload),
   psCreateHouse: (payload: any) =>
     ipcRenderer.invoke("ps:house:create", ...payload),
   psReadHouse: (payload: any) => ipcRenderer.invoke("ps:house:read", ...payload),

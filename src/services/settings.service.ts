@@ -1,4 +1,4 @@
-import DefaultSettings from "@/shared/settings.json"
+import {settings as DefaultSettings} from "@/shared/settings"
 export class SettingsService{
     constructor(){}
     updateSettings(){}

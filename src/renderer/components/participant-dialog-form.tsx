@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
@@ -13,6 +11,9 @@ import { NotebookPen } from "lucide-react"
 import { z } from "zod"
 import {PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import {ScrollArea} from "~/components/ui/scroll-area";
+import {SearchableSelectWithDialog} from "~/components/creatable_select";
+import {HouseSchema} from "~/components/house-dialog-form";
+import {nanoid} from "nanoid";
 
 // Define the schema for the Participant form
 const ParticipantSchema = z.object({
@@ -30,27 +31,27 @@ export default function ParticipantDialogForm({
   purpose = "create",
     onCreate,
     onUpdate,
-    sessionId
+    houses,
+    fetchHouses,
+    createHouse,
 }: Readonly<{
   purpose?: "create" | "edit";
   participant?: PSParticipant;
   onCreate?: (participant: Omit<PSParticipant,"id"|"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
   onUpdate?: (id:string,participant: Partial<PSParticipant>) => Promise<void>;
-  sessionId: string;
+  houses:PSHouse[];
+  fetchHouses: () => Promise<void>;
+  createHouse: (house: Omit<PSHouse,"id"|"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
 }>) {
   const [isOpen, setIsOpen] = useState(false)
-  const [houses, setHouses] = useState<any[]>([])
 
   // Fetch houses when dialog opens
   React.useEffect(() => {
     if (isOpen) {
-      const fetchHouses = async () => {
-        const houseListRes = await window.api.psListHouse(sessionId);
-        if(!houseListRes.success) return Toast({ message: houseListRes.message, variation: "error" });
-        const houseList:PSHouse[] = houseListRes.data;
-        setHouses(houseList)
-      }
-      fetchHouses()
+      fetchHouses().catch((e:Error)=>{
+          console.log(e)
+          Toast({message:"Something went Wrong",variation:"error"})
+      })
     }
   }, [isOpen])
 
@@ -194,18 +195,25 @@ export default function ParticipantDialogForm({
                               <FormItem>
                                   <FormLabel>House</FormLabel>
                                   <FormControl>
-                                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                                          <SelectTrigger>
-                                              <SelectValue placeholder="Select a house" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                              {houses.map((house) => (
-                                                  <SelectItem key={house.id} value={house.id}>
-                                                      {house.name}
-                                                  </SelectItem>
-                                              ))}
-                                          </SelectContent>
-                                      </Select>
+                                      <SearchableSelectWithDialog value={field.value} onChange={field.onChange} options={houses.map((house)=>(
+                                          {
+                                              id:house.id,
+                                              name:house.name
+                                          }
+                                      ))} schema={HouseSchema} onAddOption={async(data)=>{
+                                          try {
+                                              const newHouse:Omit<PSHouse,"createdAt"|"updatedAt"|"deletedAt"> = {
+                                                  id:nanoid(),
+                                                  name:data.name,
+                                                  abbreviation:null
+                                              }
+                                              await createHouse(newHouse);
+                                              return newHouse;
+                                          }catch (e) {
+                                              console.log(e);
+                                              Toast({message:"Something went wrong",variation:"error"})
+                                          }
+                                      }}/>
                                   </FormControl>
                                   <FormMessage />
                               </FormItem>

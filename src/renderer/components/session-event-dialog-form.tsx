@@ -261,7 +261,21 @@ export default function SessionEventDialogForm({
                               <FormItem>
                                   <FormLabel>Measurement Metric</FormLabel>
                                   <FormControl>
-                                      <Input {...field} placeholder="e.g., seconds, meters, points" />
+                                      <Select name={field.name} onValueChange={field.onChange} value={field.value}>
+                                          <SelectTrigger className={"capitalize"}>
+                                              <SelectValue placeholder="Select metric" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                              {
+                                                  Object.keys(settings.metrics).map((item, index) => {
+                                                      const  metric:string = settings.metrics[item];
+                                                      return (
+                                                          <SelectItem className={"capitalize"} value={item} key={item}>{metric}</SelectItem>
+                                                      )
+                                                  })
+                                              }
+                                          </SelectContent>
+                                      </Select>
                                   </FormControl>
                                   <FormMessage />
                               </FormItem>

@@ -7,23 +7,53 @@ import {ScrollArea, ScrollBar} from "~/components/ui/scroll-area";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "~/components/ui/table";
 import EventCard from "~/pages/sessions/session/components/EventCard";
 import {useSessionHelper} from "~/pages/sessions/session/components/useSessionHelper";
-import {useState} from "react";
-import {PSEvent} from "@/db/sqlite/p_sports/schema";
+import {useEffect, useState} from "react";
+import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import {Toast} from "~/components/Toast";
+import PsEventResultsDialog from "~/components/ps_event_results_dialog";
 
 interface Props {
-    sessionId:string;
+    createEvent:(event:Omit<PSEvent,"id"|"createdAt"|"updatedAt">)=>Promise<void>;
+    fetchSessionEvents:()=>Promise<void>;
+    importEventsFromMainStore:()=>Promise<void>;
+    events:PSEvent[];
+    participants:PSParticipant[];
+    houses:PSHouse[];
+    onDelete:(id:string)=>Promise<void>;
+    onUpdate:(id:string,data:Partial<PSEvent>)=>Promise<void>;
+    updateResult: (id:string,result:Partial<PSEventResult>) => Promise<void>;
+    createResult: (result:Omit<PSEventResult,"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
+    deleteResult: (id:string) => Promise<void>;
+    results: PSEventResult[];
 }
-export default function Events({sessionId}:Readonly<Props>){
+export default function Events({createEvent,importEventsFromMainStore,events,onUpdate,houses,participants,updateResult,createResult,deleteResult,results,onDelete}:Readonly<Props>){
     const [query, setQuery] = useState("");
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editValue, setEditValue] = useState<number | null>(null);
-    const { session, events, fetchSessionEvents,createEvent } =
-        useSessionHelper(sessionId);
+    const [currentEvent, setCurrentEvent] = useState<PSEvent>();
+
+    useEffect(() => {
+        if (events.length === 0) {
+            setCurrentEvent(null);
+            return;
+        }
+
+        const nextEvent = events
+            .filter(e => e.status !== "complete") // or whatever status means it's done
+            .sort((a, b) => a.eventNumber - b.eventNumber)[0]; // get lowest eventNumber
+
+        setCurrentEvent(nextEvent ?? null);
+    }, [events,results]);
 
     return <Card className='w-full'>
         <CardHeader>
-            <SessionEventDialogForm onCreate={createEvent}/>
+            <div className={"flex items-center gap-4"}>
+                <SessionEventDialogForm onCreate={createEvent}/>
+                <Button
+                    onClick={() => importEventsFromMainStore()}
+                    aria-description='Import Events from main store'>
+                    Import Events
+                </Button>
+            </div>
+
             <CardTitle className='flex items-center justify-between'>
                 <div className='flex flex-1 items-center gap-2'>
                     <span>Events</span>
@@ -36,12 +66,18 @@ export default function Events({sessionId}:Readonly<Props>){
                                 value={query}
                             />
                         </div>
-                        <div className='flex items-center gap-2 mr-8'>
+                        {currentEvent&&<div className='flex items-center gap-2 mr-8'>
                             <p className='font-semibold tracking-wider'>
-                                Current Event: 1
+                                Current Event: {currentEvent?.eventNumber}
                             </p>
-                            <Button>Enter Results</Button>
-                        </div>
+                            <PsEventResultsDialog toggleButton={<Button>Enter Results</Button>}
+                                                  updateEvent={onUpdate}
+                                                  eventId={currentEvent?.id}
+                                                  eventTitle={`${currentEvent?.title} - ${currentEvent?.ageGroup < 100 ? `U${currentEvent?.ageGroup}` : "Open"}`}
+                                                  event={currentEvent} participants={participants} houses={houses}
+                                                  results={results.filter(r=>r.eventId===currentEvent?.id)??[]} createResult={createResult}
+                                                  updateResult={updateResult} deleteResult={deleteResult}/>
+                        </div>}
                     </div>
                 </div>
 
@@ -53,7 +89,7 @@ export default function Events({sessionId}:Readonly<Props>){
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className='w-20'>Event #</TableHead>
+                        <TableHead className='w-20'>Event #</TableHead>
                             <TableHead>Title</TableHead>
                             <TableHead>Gender</TableHead>
                             <TableHead className='hidden md:table-cell'>
@@ -80,34 +116,16 @@ export default function Events({sessionId}:Readonly<Props>){
                                 return a.eventNumber > b.eventNumber?1:-1
                             }).map((event) => (
                                 <EventCard
-                                    sessionId={sessionId}
+                                    participants={participants}
+                                    houses={houses}
                                     key={event.id}
                                     event={event}
-                                    onUpdate={async (eventId:string,eventData: Partial<PSEvent>) => {
-                                        try {
-                                            const res = await window.api.psUpdateEvent([sessionId,[event.id,eventData]]);
-                                            if (!res.success) throw res.error;
-                                            await fetchSessionEvents();
-                                        } catch (error) {
-                                            console.error("Failed to update event:", error);
-                                            throw error;
-                                        }
-                                    }}
-                                    onDelete={async(id) => {
-                                        try {
-                                            const res = await window.api.psDeleteEvent([sessionId,id]);
-                                            if (!res.success) throw res.error;
-                                            await fetchSessionEvents();
-                                            Toast({message:"Event Deleted Successfully",variation:"success"});
-                                        }
-                                        catch (error) {
-                                            console.error("Failed to delete event:", error);
-                                            Toast({message:"Failed to delete event",variation:"error"});
-                                        }
-                                    }}
-                                    onupdateresults={() => {}}
-                                    editingId={editingId}
-                                    setEditingId={setEditingId}
+                                    onUpdate={onUpdate}
+                                    onDelete={onDelete}
+                                    updateResult={updateResult}
+                                    deleteResult={deleteResult}
+                                    createResult={createResult}
+                                    results={results.filter(result=>result.eventId===event.id)}
                                 />
                             ))
                         )}

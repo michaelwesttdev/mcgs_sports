@@ -62,7 +62,7 @@ export default function SeachableSelectWithCreationLogic({
             !value && "text-muted-foreground"
           )}
           disabled={false}>
-          {value ? value : placeholder}
+          {value ? options.find(op=>op.value===value)?.label : placeholder}
           <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
@@ -70,14 +70,14 @@ export default function SeachableSelectWithCreationLogic({
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
-            {options.map((option) => (
+            {options?.map((option) => (
               <CommandItem
-                key={option.value}
+                key={option?.value}
                 onSelect={() => {
-                  onChange(option.value);
+                  onChange(option?.value);
                   setOpen(false);
                 }}>
-                {option.label}
+                {option?.label}
               </CommandItem>
             ))}
             {/*  {canCreate && (

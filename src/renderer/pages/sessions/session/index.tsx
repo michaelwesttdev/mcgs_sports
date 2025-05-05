@@ -8,16 +8,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useSessionHelper } from "./components/useSessionHelper";
-import ParticipantDialogForm from "~/components/participant-dialog-form";
 import Events from "~/pages/sessions/session/components/Events";
+import Participants from "~/pages/sessions/session/components/Participants";
+import Houses from "~/pages/sessions/session/components/Houses";
 
 export default function SessionViewPage() {
   const { id } = useParams();
-  const { session, importEventsFromMainStore, events, fetchSessionEvents } =
+  const { session, importEventsFromMainStore, events, fetchSessionEvents,createEvent,updateEvent,deleteEvent,createParticipant,updateParticipant,deleteParticipant,fetchSessionParticipants,fetchSessionHouses,updateHouse,deleteHouse,createHouse,participants,houses,createEventResult,updateEventResult,deleteEventResult,fetchSessionEventResults,eventResults } =
     useSessionHelper(id);
   const [activeTab, setActiveTab] = useState("events");
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (id) {
+      (async () => {
+        await window.api.handleSessionDbCreate(id);
+      })();
+    }
+    return () => {
+      window.api.handleSessionDbClose(id);
+    };
+  }, []);
+
+  if(!id) return null;
 
   return (
     <div className='p-4'>
@@ -26,13 +38,7 @@ export default function SessionViewPage() {
         <div>
           <h1 className='text-xl font-bold'>Session {session?.title ?? ""}</h1>
         </div>
-        <div>
-          <Button
-            onClick={() => importEventsFromMainStore()}
-            aria-description='Import Events from main store'>
-            Import Events
-          </Button>
-        </div>
+
       </div>
       {/* tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className='mt-4'>
@@ -44,41 +50,20 @@ export default function SessionViewPage() {
 
         {/* Events Tab */}
         <TabsContent value='events'>
-          <Events sessionId={id}/>
+          <Events participants={participants} houses={houses} fetchSessionEvents={fetchSessionEvents}
+                  importEventsFromMainStore={importEventsFromMainStore} events={events} createEvent={createEvent}
+                  onUpdate={updateEvent} onDelete={deleteEvent} updateResult={updateEventResult} createResult={createEventResult}
+                  deleteResult={deleteEventResult} results={eventResults} />
         </TabsContent>
 
         {/* Participants Tab */}
         <TabsContent value='participants'>
-          <Card>
-
-            <CardContent>
-              <CardHeader className='flex w-full'>
-              <div className='flex flex-1 items-center justify-between gap-2'>
-                <h2 className='text-lg font-semibold'>Participants</h2>
-                <ParticipantDialogForm sessionId={id} onCreate={async(data)=>{}}/>
-              </div>
-            </CardHeader>
-            <div className='p-4 text-center text-muted-foreground'>
-                <p>No participants found. Add participants to this session.</p>
-              <ParticipantDialogForm sessionId={id} onCreate={async(data)=>{}}/>
-            </div>
-            </CardContent>
-          </Card>
+          <Participants createHouse={createHouse} fetchParticipants={fetchSessionParticipants} fetchHouses={fetchSessionHouses} updateParticipant={updateParticipant} deleteParticipant={deleteParticipant} createNewParticipant={createParticipant} houses={houses} participants={participants}/>
         </TabsContent>
 
         {/* Houses Tab */}
         <TabsContent value='houses'>
-          <Card>
-            <CardHeader className='flex items-center justify-between'>
-              <h2 className='text-lg font-semibold'>Houses</h2>
-            </CardHeader>
-            <CardContent>
-              <div className='p-4 text-center text-muted-foreground'>
-                <p>No houses found. Add houses to this session.</p>
-                <Button className='mt-4'>Add House</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <Houses createHouse={createHouse} fetchSessionHouses={fetchSessionHouses} participants={participants} houses={houses} onDelete={deleteHouse} onUpdate={updateHouse} results={eventResults}/>
         </TabsContent>
       </Tabs>
     </div>

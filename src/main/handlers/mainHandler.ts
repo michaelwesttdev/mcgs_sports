@@ -74,6 +74,11 @@ export class MainHandler {
       "ps:participant:update",
       "ps:participant:delete",
       "ps:participant:list",
+      "ps:event_result:create",
+      "ps:event_result:read",
+      "ps:event_result:update",
+      "ps:event_result:delete",
+      "ps:event_result:list",
     ];
 
     channels.forEach((channel) => {
@@ -121,7 +126,7 @@ export class MainHandler {
     ipcMain.handle("session:createDbContext", async (_, args: string) => {
       console.log("creating db context for session:", args);
       try {
-        let context = this.p_sessionsContexts.get(args);
+        const context = this.p_sessionsContexts.get(args);
         if (context) {
           return { success: true };
         }
@@ -148,7 +153,7 @@ export class MainHandler {
     });
     ipcMain.handle("session:closeDbContext", async (_, args: string) => {
       try {
-        let context = this.p_sessionsContexts.get(args);
+        const context = this.p_sessionsContexts.get(args);
         if (!context) {
           return { success: true };
         }
@@ -162,6 +167,7 @@ export class MainHandler {
   }
 
   private handleError(error: any) {
+    console.log("error: ",error);
     if (error instanceof RepositoryError) {
       return {
         success: false,

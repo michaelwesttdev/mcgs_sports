@@ -1,5 +1,6 @@
 import {createContext, useEffect, useState} from "react";
 import {SettingsService} from "@/services/settings.service";
+import {Settings,settings as defaultSettings} from "@/shared/settings";
 
 interface SettingsContextType{
     settings:any,
@@ -13,7 +14,7 @@ export const SettingsContext = createContext<SettingsContextType>({
 });
 
 export default function SettingsContextProvider({children}:{children:React.ReactNode}){
-    const [settings, setSettings] = useState({});
+    const [settings, setSettings] = useState<Settings>(defaultSettings);
     const settingsService = new SettingsService()
     async function fetchSettings(): Promise<any>{
         const res = settingsService.getSettings();

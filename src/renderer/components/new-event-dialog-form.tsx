@@ -14,6 +14,7 @@ import { useDiscipline } from "~/hooks/use_discipline"
 import {MEvent} from "@/db/sqlite/main/schema";
 import {useEvents} from "~/hooks/use_events";
 import {ScrollArea} from "~/components/ui/scroll-area";
+import {useSettings} from "~/hooks/use_settings";
 
 // Define the schema for the Event form
 const NewEventSchema = z.object({
@@ -38,6 +39,7 @@ export default function NewEventDialogForm({
   const [isOpen, setIsOpen] = useState(false)
     const { createEvent, listAllEvents, updateEvent } = useEvents();
     const { disciplines } = useDiscipline();
+    const {settings} = useSettings();
 
   const defaultValues: NewEventSchemaType = {
     title: event?.title || "",
@@ -204,12 +206,32 @@ export default function NewEventDialogForm({
                             <FormItem>
                                 <FormLabel>Age Group</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="number"
-                                        {...field}
-                                        onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : undefined)}
-                                        placeholder="Age Group"
-                                    />
+                                    <>
+                                        <Input
+                                            type="number"
+                                            {...field}
+                                            onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : undefined)}
+                                            placeholder="Age Group"
+                                        />
+                                        <Select name={field.name} onValueChange={(value)=>{
+                                            console.log(value)
+                                            field.onChange(parseInt(value))
+                                        }} value={field.value.toString()}>
+                                            <SelectTrigger className={"capitalize"}>
+                                                <SelectValue placeholder="Select age group" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {
+                                                    Object.keys(settings.ageGroups).map((item, index) => {
+                                                        const ageGroup = item==="open"?100:parseInt(item.slice(1));
+                                                        return (
+                                                            <SelectItem className={"capitalize"} value={ageGroup.toString()} key={item}>{item}</SelectItem>
+                                                        )
+                                                    })
+                                                }
+                                            </SelectContent>
+                                        </Select>
+                                    </>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -246,7 +268,21 @@ export default function NewEventDialogForm({
                             <FormItem>
                                 <FormLabel>Measurement Metric</FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="e.g., seconds, meters, points" />
+                                    <Select name={field.name} onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger className={"capitalize"}>
+                                            <SelectValue placeholder="Select metric" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {
+                                                Object.keys(settings.metrics).map((item, index) => {
+                                                    const  metric:string = settings.metrics[item];
+                                                    return (
+                                                        <SelectItem className={"capitalize"} value={metric} key={item}>{metric}</SelectItem>
+                                                    )
+                                                })
+                                            }
+                                        </SelectContent>
+                                    </Select>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

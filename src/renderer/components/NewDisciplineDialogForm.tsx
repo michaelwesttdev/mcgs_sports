@@ -104,7 +104,7 @@ export default function NewDisciplineDialogForm({
       }}>
       <DialogTrigger asChild>
         <Button
-          variant='outline'
+          variant='secondary'
           size={purpose === "edit" ? "icon" : "default"}
           className={`${purpose === "edit" ? "w-6 h-6" : ""}`}>
           {purpose === "create" ? (

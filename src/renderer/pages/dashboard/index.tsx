@@ -6,6 +6,9 @@ import { Card, CardContent } from "@/renderer/components/ui/card";
 import { useDiscipline } from "@/renderer/hooks/use_discipline";
 import { format } from "date-fns";
 import React, { useEffect } from "react";
+import {useEvents} from "~/hooks/use_events";
+import {useSession} from "~/hooks/use_session";
+import {useNavigate} from "react-router";
 
 function DashboardPageHeader() {
   return (
@@ -21,32 +24,32 @@ function DashboardPageHeader() {
     </div>
   );
 }
-function DashboardPageQuickActions({
-  disciplines,
-}: {
-  disciplines: MDiscipline[];
-}) {
+function DashboardPageQuickActions() {
+  const { disciplines } = useDiscipline();
+  const {events} = useEvents();
+  const {sessions} = useSession();
+  const navigate = useNavigate();
   return (
     <Card className='my-4'>
       <CardContent className='flex items-center gap-5 p-4'>
-        <Card className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
+        <Card onClick={()=>navigate("/sessions")} className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
           <CardContent>
-            <h1 className='text-3xl font-bold'>20</h1>
-            <p>Total Sessions</p>
+            <h1 className='text-3xl font-bold'>{sessions.length}</h1>
+            <p>Session{(sessions.length > 1 || sessions.length < 1) && "s"}</p>
           </CardContent>
         </Card>
-        <Card className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
+        <Card onClick={()=>navigate("/events")} className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
           <CardContent>
-            <h1 className='text-3xl font-bold'>20</h1>
-            <p>Total Events</p>
+            <h1 className='text-3xl font-bold'>{events.length}</h1>
+            <p>Event{(events.length > 1 || events.length < 1 )&& "s"}</p>
           </CardContent>
         </Card>
-        <Card className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
+        <Card onClick={()=>navigate("/disciplines")} className='max-w-[250px] w-max p-2 cursor-pointer select-none hover:scale-105 transition-all duration-200'>
           <CardContent>
             <h1 className='text-3xl font-bold'>{disciplines.length}</h1>
             <p>
-              Total Discipline
-              {disciplines.length > 1 || (disciplines.length < 1 && "'s")}
+              Discipline
+              {(disciplines.length > 1 || disciplines.length < 1) && "s"}
             </p>
           </CardContent>
         </Card>
@@ -63,7 +66,7 @@ export default function DashboardPage() {
   return (
     <div className='p-6 pt-2'>
       <DashboardPageHeader />
-      <DashboardPageQuickActions disciplines={disciplines} />
+      <DashboardPageQuickActions />
     </div>
   );
 }

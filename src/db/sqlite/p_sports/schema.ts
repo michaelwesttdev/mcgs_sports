@@ -21,6 +21,7 @@ const timestamps = {
 const House = sqliteTable("house", {
   id: text("id").primaryKey().notNull(),
   name: text("name", { length: 255 }).notNull(),
+  abbreviation: text("abbreviation"),
   ...timestamps,
 });
 
@@ -70,7 +71,7 @@ const EventResult = sqliteTable("event_result", {
   ...timestamps,
 });
 
-export { Participant, Event, House };
+export { Participant, Event, House,EventResult };
 
 export type PSParticipant = typeof Participant.$inferSelect;
 export type PSEvent = typeof Event.$inferSelect;

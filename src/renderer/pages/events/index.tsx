@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import {Copy, Trash} from "lucide-react";
+import {Copy, CopyPlus, Trash} from "lucide-react";
 import { useDiscipline } from "~/hooks/use_discipline";
 import {
   Select,
@@ -13,7 +13,6 @@ import {
 } from "@/renderer/components/ui/select";
 import { useEvents } from "~/hooks/use_events";
 import NewEventDialogForm from "~/components/new-event-dialog-form";
-import {BiDuplicate} from "react-icons/bi";
 import {DeleteModal} from "~/components/deleteModal";
 import {getGenderName} from "@/shared/genderName";
 
@@ -108,7 +107,7 @@ export default function EventsPage() {
                   className='w-6 h-6'
                   onClick={async()=>await duplicateEvent(event)}
                 >
-                  <BiDuplicate/>
+                  <CopyPlus/>
                   </Button>
               </aside>
             </CardContent>
