@@ -54,7 +54,7 @@ export default function HouseDialogForm({
         await onCreate({
           name: data.name,
           abbreviation: data.abbreviation?? null,
-          color: data.color,
+          color: data?.color??null,
         });
       }
 
@@ -113,18 +113,6 @@ export default function HouseDialogForm({
                   <FormLabel>Abbreviation</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="House Abbreviation" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /><FormField
-              control={form.control}
-              name="abbreviation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>House Color</FormLabel>
-                  <FormControl>
-                    <Input {...field} type={"color"} placeholder="House Abbreviation" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

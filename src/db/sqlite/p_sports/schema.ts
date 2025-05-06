@@ -22,6 +22,7 @@ const House = sqliteTable("house", {
   id: text("id").primaryKey().notNull(),
   name: text("name", { length: 255 }).notNull(),
   abbreviation: text("abbreviation"),
+  color: text("color"),
   ...timestamps,
 });
 

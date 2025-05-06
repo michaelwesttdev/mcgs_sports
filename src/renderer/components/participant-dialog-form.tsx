@@ -206,6 +206,7 @@ export default function ParticipantDialogForm({
                                                   id:nanoid(),
                                                   name:data.name,
                                                   abbreviation:data.abbreviation,
+                                                  color:data.color
                                               }
                                               await createHouse(newHouse);
                                               field.onChange(newHouse.id);

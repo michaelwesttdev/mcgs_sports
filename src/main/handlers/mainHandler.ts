@@ -10,6 +10,8 @@ import {
 import { ipcMain } from "electron";
 import * as PsSchema from "@/db/sqlite/p_sports/schema";
 import { getSessionDbPath } from "@/shared/helpers/urls";
+import {SettingsHandler} from "@/main/handlers/settingsHandler";
+import {settings} from "@/shared/settings";
 
 export class MainHandler {
   private p_sessionsContexts: Map<
@@ -164,6 +166,8 @@ export class MainHandler {
         this.handleError(error);
       }
     });
+    const settingsHandler = new SettingsHandler(settings,this.handleError);
+    settingsHandler.registerHandlers();
   }
 
   private handleError(error: any) {

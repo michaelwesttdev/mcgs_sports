@@ -1,31 +1,43 @@
 import {Settings} from "@/shared/settings";
 import fs from "fs/promises"
 import {getSettingsFileUrl} from "@/shared/helpers/urls";
+import {ipcMain} from "electron";
+
+type ErrorHandlerFunctionType = (error: any) => {details?: string, success: boolean, error: string};
 export class SettingsHandler {
     private settingsPath = "";
-    constructor(private defaultSettings:Settings){
+    private handleError:ErrorHandlerFunctionType;
+    constructor(private defaultSettings:Settings,handleError:ErrorHandlerFunctionType){
         this.settingsPath = getSettingsFileUrl();
+        this.handleError = handleError;
     }
     private merge({defaultSettings, newSettings}:{defaultSettings:Settings, newSettings:Partial<Settings>} ){
         return {...defaultSettings,...newSettings}
     }
-    async getSettings (){
+    private async getSettings (){
         try {
             const rawSettings = await fs.readFile(this.settingsPath,{encoding:"utf-8"});
             let settings:Settings = JSON.parse(rawSettings);
             if(!settings){
-                settings = await this.updateSettings(this.defaultSettings);
+                settings = (await this.updateSettings(this.defaultSettings)).data??this.defaultSettings;
             }
         }catch (e){
             console.log(e);
-            return this.defaultSettings;
+            return this.handleError(e);
         }
     }
-    async updateSettings (settings:Partial<Settings>){
+    private async updateSettings (settings:Partial<Settings>){
         try {
-
+            const merged = this.merge({defaultSettings:this.defaultSettings, newSettings:settings});
+            await fs.writeFile(this.settingsPath,JSON.stringify(merged));
+            return {success:true,data:merged};
         }catch (e) {
-            console.log(E);
+            console.log(e);
+            this.handleError(e);
         }
+    }
+    async registerHandlers(){
+        ipcMain.handle("getSettings",async ()=>this.getSettings())
+        ipcMain.handle("updateSettings",async (_,args:Settings)=>this.updateSettings(args))
     }
 }

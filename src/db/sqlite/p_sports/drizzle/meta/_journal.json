@@ -36,6 +36,13 @@
       "when": 1746383409783,
       "tag": "0004_pretty_mercury",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1746536650721,
+      "tag": "0005_perpetual_tarantula",
+      "breakpoints": true
     }
   ]
 }
