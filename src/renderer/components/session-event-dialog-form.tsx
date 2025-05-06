@@ -38,18 +38,20 @@ export default function SessionEventDialogForm({
     onCreate,
     onUpdate,
     trigger,
+    eventNumber=1
 }: Readonly<{
   purpose?: "create" | "edit";
   event?: PSEvent;
     onCreate?: (data: SessionEventSchemaType) => Promise<void>;
     onUpdate?: (id:string,data: Partial<SessionEventSchemaType>) => Promise<void>;
-    trigger?:React.ReactElement
+    trigger?:React.ReactElement,
+    eventNumber?:number
 }>) {
   const [isOpen, setIsOpen] = useState(false)
     const {settings} = useSettings();
 
   const defaultValues: SessionEventSchemaType = {
-    eventNumber: event?.eventNumber || 1,
+    eventNumber: event?.eventNumber || eventNumber,
     title: event?.title || "",
     description: event?.description || "",
     type: event?.type || "individual",
@@ -125,6 +127,7 @@ export default function SessionEventDialogForm({
                                   <FormLabel>Event Number</FormLabel>
                                   <FormControl>
                                       <Input
+                                      min={eventNumber}
                                           type="number"
                                           {...field}
                                           onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : 0)}

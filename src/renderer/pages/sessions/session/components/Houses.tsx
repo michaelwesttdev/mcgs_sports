@@ -82,16 +82,35 @@ export default function Houses({createHouse,results,onUpdate,houses,participants
                             />
                         </div>
                         <div className='flex items-center gap-2 mr-8'>
-                            <p className='font-semibold tracking-wider'>
-                                Leading House: {(() => {
+
+                        <p className='font-semibold tracking-wider'>
+                            Leading House: {(() => {
                                 const firstPlaceEntry = [...positions.entries()].find(([, pos]) => pos === 1);
                                 const houseId = firstPlaceEntry?.[0];
                                 const house = houses.find(h => h.id === houseId);
-                                const houseName = house?.name;
-                                const houseColor = house?.color??"black"
-                                return <span style={{color:houseColor}}>{houseName} </span> ?? <span className={"text-xs text-muted-foreground"}>"Calculating..."</span>;
+
+                                if (!house) {
+                                    return <span className="text-xs text-muted-foreground">"Calculating..."</span>;
+                                }
+
+                                return (
+                                    <span style={{ color: house?.color??"black" }}>
+                                        {house.name}
+                                    </span>
+                                );
                             })()}
-                            </p>
+                        </p>
+
+
+                            {/* <p className='font-semibold tracking-wider'>
+                                Leading House: {(() => {
+                                const firstPlaceEntry = [...positions.entries()].find(([, pos]) => pos === 1);
+                                const houseId = firstPlaceEntry?.[0];
+                                const houseName = houses.find(h => h.id === houseId)?.name;
+                                //return houseName ?? <span className={"text-xs text-muted-foreground"}>"Calculating..."</span>;
+                                return houseName ?? <span className={"text-xs text-muted-foreground"}>"Calculating..."</span>;
+                            })()}
+                            </p> */}
                         </div>
                     </div>
                 </div>

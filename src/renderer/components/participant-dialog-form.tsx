@@ -214,6 +214,10 @@ export default function ParticipantDialogForm({
                                               console.log(e);
                                               Toast({message:"Something went wrong",variation:"error"})
                                           }
+                                      }} override={{
+                                        "color":{
+                                          type:"color"
+                                        }
                                       }}/>
                                   </FormControl>
                                   <FormMessage />
