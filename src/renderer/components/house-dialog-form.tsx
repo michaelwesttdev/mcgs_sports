@@ -15,6 +15,7 @@ import {useHouse} from "~/hooks/use_house";
 export const HouseSchema = z.object({
   name: z.string().min(1, { message: "House name is required" }),
   abbreviation: z.string().optional(),
+  color: z.string().optional(),
 })
 
 type HouseSchemaType = z.infer<typeof HouseSchema>
@@ -53,6 +54,7 @@ export default function HouseDialogForm({
         await onCreate({
           name: data.name,
           abbreviation: data.abbreviation?? null,
+          color: data.color,
         });
       }
 
@@ -128,6 +130,25 @@ export default function HouseDialogForm({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>House Color</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="color"
+                      {...field}
+                      className="h-10 w-16 p-1 border rounded-md"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
 
             <Button type="submit" className="capitalize">
               {purpose}
