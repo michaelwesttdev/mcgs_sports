@@ -205,10 +205,10 @@ export default function ParticipantDialogForm({
                                               const newHouse:Omit<PSHouse,"createdAt"|"updatedAt"|"deletedAt"> = {
                                                   id:nanoid(),
                                                   name:data.name,
-                                                  abbreviation:null
+                                                  abbreviation:data.abbreviation,
                                               }
                                               await createHouse(newHouse);
-                                              return newHouse;
+                                              field.onChange(newHouse.id);
                                           }catch (e) {
                                               console.log(e);
                                               Toast({message:"Something went wrong",variation:"error"})

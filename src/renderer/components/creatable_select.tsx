@@ -26,7 +26,7 @@ interface SearchableSelectWithDialogProps<TOption extends { id: string; name: st
     label?: string;
     description?: string;
     dialogTitle?: string;
-    onAddOption: (data: any) => Promise<TOption>;
+    onAddOption: (data: any) => Promise<void>;
     placeholder?: string;
 }
 
@@ -53,7 +53,6 @@ export function SearchableSelectWithDialog<TOption extends { id: string; name: s
 
     const handleAdd = async (data: any) => {
         const newItem = await onAddOption(data);
-        onChange(newItem.id);
         setDialogOpen(false);
     };
 
@@ -61,7 +60,7 @@ export function SearchableSelectWithDialog<TOption extends { id: string; name: s
         <div className="relative">
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between">
+                    <Button type={"button"} variant="outline" role="combobox" className="w-full justify-between">
                         {selectedName}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>

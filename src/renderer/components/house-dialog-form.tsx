@@ -115,6 +115,18 @@ export default function HouseDialogForm({
                   <FormMessage />
                 </FormItem>
               )}
+            /><FormField
+              control={form.control}
+              name="abbreviation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>House Color</FormLabel>
+                  <FormControl>
+                    <Input {...field} type={"color"} placeholder="House Abbreviation" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <Button type="submit" className="capitalize">

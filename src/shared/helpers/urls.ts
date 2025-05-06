@@ -17,6 +17,11 @@ export function getSessionDbFolderUrl(): string {
   }
   return sessionsPath;
 }
+export function getSettingsFileUrl(): string {
+  const base = getAppStoreBaseUrl();
+  const settingsPath = path.join(base, `settings.json`);
+  return settingsPath;
+}
 export function getSessionDbPath(id: string) {
   const basePath = getSessionDbFolderUrl();
   const SessionDbPath = path.join(basePath, `${id}.db`);

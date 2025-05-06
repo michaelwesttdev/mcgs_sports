@@ -102,7 +102,9 @@ export const ZodFormDialog = ({
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={isSubmitting}>
+                            <Button type="button" onClick={()=>{
+                                form.handleSubmit(handleSubmit)();
+                            }} disabled={isSubmitting}>
                                 {isSubmitting ? "Saving..." : "Save"}
                             </Button>
                         </DialogFooter>

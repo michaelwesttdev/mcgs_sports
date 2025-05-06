@@ -7,6 +7,7 @@ import DisciplinesPage from "./pages/disciplines";
 import EventsPage from "./pages/events";
 import SessionsLayout from "./pages/sessions/Layout";
 import SessionViewPage from "./pages/sessions/session";
+import SettingsPage from "~/pages/settings";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         </Route>
         <Route path='disciplines' element={<DisciplinesPage />} />
         <Route path='events' element={<EventsPage />} />
+        <Route path='settings' element={<SettingsPage />} />
       </Route>
     </Routes>
   );

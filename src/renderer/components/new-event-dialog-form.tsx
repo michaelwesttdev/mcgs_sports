@@ -207,16 +207,10 @@ export default function NewEventDialogForm({
                                 <FormLabel>Age Group</FormLabel>
                                 <FormControl>
                                     <>
-                                        <Input
-                                            type="number"
-                                            {...field}
-                                            onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : undefined)}
-                                            placeholder="Age Group"
-                                        />
                                         <Select name={field.name} onValueChange={(value)=>{
                                             console.log(value)
                                             field.onChange(parseInt(value))
-                                        }} value={field.value.toString()}>
+                                        }} value={field.value?.toString()}>
                                             <SelectTrigger className={"capitalize"}>
                                                 <SelectValue placeholder="Select age group" />
                                             </SelectTrigger>

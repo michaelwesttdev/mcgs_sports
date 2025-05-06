@@ -80,7 +80,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psDeleteEvent([sessionId,id]);
       if (!res.success) throw res.error;
-      await fetchSessionEvents();
+      await refresh();
       Toast({message:"Event Deleted Successfully",variation:"success"});
     }
     catch (error) {
@@ -104,6 +104,8 @@ export function useSessionHelper(sessionId: string) {
   async function createHouse(house:Omit<PSHouse,"id"|"createdAt"|"updatedAt">){
     try {
       const id = nanoid();
+      const exists = houses.find((h) => h.name.toLowerCase() === house.name.toLowerCase());
+      if(exists) throw new Error("House already exists");
       const res = await window.api.psCreateHouse([
         sessionId,
         {id,...house},
@@ -112,7 +114,7 @@ export function useSessionHelper(sessionId: string) {
       await fetchSessionHouses();
     }
     catch (e) {
-      Toast({ message: "Error creating house", variation: "error" });
+      Toast({ message: e.message??"Error creating house", variation: "error" });
     }
   }
   async function fetchSessionHouses(){
@@ -141,7 +143,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psDeleteHouse([sessionId,houseId]);
       if (!res.success) throw res.error;
-      await fetchSessionHouses();
+      await refresh();
       Toast({message:"House Deleted Successfully",variation:"success"});
     }
     catch (error) {
@@ -190,7 +192,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psDeleteParticipant([sessionId,id]);
       if (!res.success) throw res.error;
-      await fetchSessionParticipants();
+      await refresh();
       Toast({message:"Participant Deleted Successfully",variation:"success"});
     }
     catch (error) {
@@ -238,7 +240,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psDeleteEventResult([sessionId,id]);
       if (!res.success) throw res.error;
-      await fetchSessionEventResults();
+      await refresh();
       Toast({message:"Event Result Deleted Successfully",variation:"success"});
     }
     catch (error) {
@@ -246,15 +248,16 @@ export function useSessionHelper(sessionId: string) {
       Toast({message:"Failed to delete event result",variation:"error"});
     }
   }
+  const refresh = async () => {
+    await fetchSession();
+    await fetchSessionEvents();
+    await fetchSessionHouses();
+    await fetchSessionParticipants();
+    await fetchSessionEventResults();
+  }
   useEffect(() => {
     if (sessionId) {
-      (async () => {
-        await fetchSession();
-        await fetchSessionEvents();
-        await fetchSessionHouses();
-        await fetchSessionParticipants();
-        await fetchSessionEventResults();
-      })();
+      refresh().catch(e=>console.error(e));
     }
   }, [sessionId]);
   return {

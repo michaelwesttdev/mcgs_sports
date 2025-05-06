@@ -21,9 +21,9 @@ export const settings: Settings = {
     open: 18,
   },
   metrics: {
-    m: "meters",
-    sec: "seconds",
-    min: "minutes",
+    m: "^(0|[1-9]\\\\d*)(\\\\.\\\\d+)?$",
+    sec: "^(0|[1-5]?\\\\d)(\\\\.\\\\d+)?$",
+    min: "^(0|[1-5]?\\\\d)(\\\\.\\\\d+)?$",
   },
   points: {
     individual: {
