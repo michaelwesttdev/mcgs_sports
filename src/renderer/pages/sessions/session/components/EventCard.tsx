@@ -22,6 +22,9 @@ type EventProps = {
     results: PSEventResult[];
 };
 export default function EventCard({updateResult,createResult,deleteResult,results, event, onUpdate,participants,houses, onDelete }: EventProps) {
+
+    const isCompleted = results.some(r => r.eventId === event.id);
+
     return (
         <TableRow key={event.id}>
             <TableCell> {event.eventNumber || "-"}</TableCell>
@@ -43,6 +46,7 @@ export default function EventCard({updateResult,createResult,deleteResult,result
                     <Trash className={"w-4 h-4"}/>
                 </Button>}/>
             </TableCell>
+            <TableCell className={`font-medium ${isCompleted ? "text-green-700 font-semibold" : ""}`}></TableCell>
         </TableRow>
     );
 }

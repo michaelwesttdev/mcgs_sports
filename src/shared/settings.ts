@@ -21,9 +21,9 @@ export const settings: Settings = {
     open: 18,
   },
   metrics: {
-    m: "meters",
-    sec: "seconds",
-    min: "minutes",
+    m: "/\b(\d+(\.\d+)?)(?=\s?m\b)/i",       // Matches numbers before "m"
+    sec: "/\b(\d+(\.\d+)?)(?=\s?sec\b)/i",   // Matches numbers before "sec"
+    min: "/\b(\d+(\.\d+)?)(?=\s?min\b)/i",   // Matches numbers before "min"
   },
   points: {
     individual: {

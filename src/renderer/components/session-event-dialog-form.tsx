@@ -49,7 +49,7 @@ export default function SessionEventDialogForm({
     const {settings} = useSettings();
 
   const defaultValues: SessionEventSchemaType = {
-    eventNumber: event?.eventNumber || 0,
+    eventNumber: event?.eventNumber || 1,
     title: event?.title || "",
     description: event?.description || "",
     type: event?.type || "individual",
