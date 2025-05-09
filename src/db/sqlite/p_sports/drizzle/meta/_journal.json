@@ -43,6 +43,27 @@
       "when": 1746536650721,
       "tag": "0005_perpetual_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1746539750358,
+      "tag": "0006_regular_hydra",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1746539894612,
+      "tag": "0007_late_maverick",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1746815513789,
+      "tag": "0008_bitter_agent_zero",
+      "breakpoints": true
     }
   ]
 }

@@ -126,6 +126,7 @@ export function SearchableSelectWithDialog<TOption extends { id: string; name: s
                 description={description}
                 schema={schema}
                 onSubmit={handleAdd}
+
             />
         </div>
     );

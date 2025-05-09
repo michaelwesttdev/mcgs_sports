@@ -28,7 +28,7 @@ export default function EventCard({updateResult,createResult,deleteResult,result
     return (
         <TableRow key={event.id}>
             <TableCell> {event.eventNumber || "-"}</TableCell>
-            <TableCell className='font-medium'>{`${event.title} - ${event.ageGroup<100?`U${event.ageGroup}`:"Open"}`}</TableCell>
+            <TableCell className='font-medium'>{`${event.title} - ${event.ageGroup}`}</TableCell>
             <TableCell className='font-medium'>{getGenderName(event.gender)}</TableCell>
             <TableCell className='hidden md:table-cell'>{event.recordHolder || "-"}</TableCell>
             <TableCell className='hidden md:table-cell'> {event.record ? (`${event.record} ${event.measurementMetric || ""}`) : ("-")}</TableCell>
@@ -41,7 +41,7 @@ export default function EventCard({updateResult,createResult,deleteResult,result
             </TableCell>
             <TableCell className='flex items-center gap-2 justify-end'>
                 <SessionEventDialogForm purpose={"edit"} event={event} onUpdate={onUpdate}/>
-                <PsEventResultsDialog updateEvent={onUpdate} createResult={createResult} updateResult={updateResult} results={results} deleteResult={deleteResult} participants={participants} houses={houses} eventId={event.id} eventTitle={`${event.title} - ${event.ageGroup<100?`U${event.ageGroup}`:"Open"} ${getGenderName(event.gender)}`} event={event}/>
+                <PsEventResultsDialog updateEvent={onUpdate} createResult={createResult} updateResult={updateResult} results={results} deleteResult={deleteResult} participants={participants} houses={houses} eventId={event.id} eventTitle={`${event.title} - ${event.ageGroup} ${getGenderName(event.gender)}`} event={event}/>
                 <DeleteModal onDelete={async()=>await onDelete(event.id)} itemName={`event number ${event.eventNumber} (${event.title} - U${event.ageGroup} (${getGenderName((event.gender))}))`} trigger={<Button variant="destructive" size={"icon"} className={`w-6 h-6`}>
                     <Trash className={"w-4 h-4"}/>
                 </Button>}/>

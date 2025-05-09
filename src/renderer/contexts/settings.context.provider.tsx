@@ -5,7 +5,7 @@ import {Settings,settings as defaultSettings} from "@/shared/settings";
 interface SettingsContextType{
     settings:any,
     fetchSettings:() => Promise<any>
-    updateSettings:() => Promise<any>
+    updateSettings:(data:Partial<Settings>) => Promise<any>
 }
 export const SettingsContext = createContext<SettingsContextType>({
     settings:{},
@@ -16,11 +16,14 @@ export const SettingsContext = createContext<SettingsContextType>({
 export default function SettingsContextProvider({children}:{children:React.ReactNode}){
     const [settings, setSettings] = useState<Settings>(defaultSettings);
     const settingsService = new SettingsService()
-    async function fetchSettings(): Promise<any>{
-        const res = settingsService.getSettings();
+    async function fetchSettings(){
+        const res = await settingsService.getSettings();
         setSettings(res);
     }
-    async function updateSettings(): Promise<any>{}
+    async function updateSettings(data:Partial<Settings>){
+        const res = await settingsService.updateSettings(data);
+        setSettings(res);
+    }
     useEffect(()=>{
         (async()=>{
             await fetchSettings();

@@ -1,10 +1,14 @@
-import {settings as DefaultSettings} from "@/shared/settings"
+import {Settings, settings as DefaultSettings} from "@/shared/settings"
 export class SettingsService{
     constructor(){}
-    updateSettings(){}
-    getSettings(){
-        const settings = DefaultSettings;
+    async updateSettings(data: Partial<Settings>){
+        const res = await window.api.updateSettings(data);
+        const settings:Settings = res.data;
         return settings;
     }
-    mergeSettings(){}
+    async getSettings(){
+        const res = await window.api.getSettings();
+        const settings:Settings = res.data;
+        return settings;
+    }
 }

@@ -21,9 +21,11 @@ export default function Houses({createHouse,results,onUpdate,houses,participants
     const [query, setQuery] = useState("");
     const [points, setPoints] = useState<Map<string, number>>(new Map());
     const [positions, setPositions] = useState<Map<string, number>>(new Map());
+    const [disqualifiedTotal, setDisqualifiedTotal] = useState<Map<string, number>>(new Map());
 
     useEffect(() => {
         const newPoints = new Map<string, number>();
+        const newDisqualifiedTotal = new Map<string, number>();
 
         houses.forEach(house => {
             const resultsForHouse = results.filter(r => {
@@ -37,10 +39,13 @@ export default function Houses({createHouse,results,onUpdate,houses,participants
             });
 
             const totalPoints = resultsForHouse.reduce((sum, result) => sum + result.points, 0);
+            const disqualified = resultsForHouse.reduce((sum, result) => sum + (result.position===0?1:0), 0);
+            newDisqualifiedTotal.set(house.id, disqualified);
             newPoints.set(house.id, totalPoints);
         });
 
         setPoints(newPoints);
+        setDisqualifiedTotal(newDisqualifiedTotal);
 
         // Now compute positions based on newPoints
         const sortedHousePoints = Array.from(newPoints.entries()).sort((a, b) => b[1] - a[1]);
@@ -110,6 +115,8 @@ export default function Houses({createHouse,results,onUpdate,houses,participants
                             <TableHead className='hidden md:table-cell'>
                                 Total Participants
                             </TableHead><TableHead className='hidden md:table-cell'>
+                                Total Disqualified
+                            </TableHead><TableHead className='hidden md:table-cell'>
                                 Points
                             </TableHead>
                             <TableHead className='w-24 text-right'>Actions</TableHead>
@@ -131,7 +138,7 @@ export default function Houses({createHouse,results,onUpdate,houses,participants
                             houses.sort((a,b)=>{
                                 return a.name > b.name?1:-1
                             }).map((house) => (
-                                <HouseCard position={positions.get(house.id)} points={points.get(house.id)} key={house.id} house={house} participants={participants.filter(p=>p.houseId===house.id).length} onUpdate={onUpdate} onDelete={onDelete} houses={houses} fetchHouses={fetchSessionHouses}/>
+                                <HouseCard disqualified={disqualifiedTotal.get(house.id)??0} position={positions.get(house.id)} points={points.get(house.id)} key={house.id} house={house} participants={participants.filter(p=>p.houseId===house.id).length} onUpdate={onUpdate} onDelete={onDelete} houses={houses} fetchHouses={fetchSessionHouses}/>
                             ))
                         )}
                     </TableBody>

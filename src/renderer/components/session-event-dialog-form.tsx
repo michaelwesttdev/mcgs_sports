@@ -1,4 +1,4 @@
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { useForm } from "react-hook-form"
@@ -14,6 +14,7 @@ import { z } from "zod"
 import {PSEvent} from "@/db/sqlite/p_sports/schema";
 import {ScrollArea} from "~/components/ui/scroll-area";
 import {useSettings} from "~/hooks/use_settings";
+import {natures} from "@/shared/constants/constants";
 
 // Define the schema for the Session Event form
 const SessionEventSchema = z.object({
@@ -21,13 +22,15 @@ const SessionEventSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional(),
   type: z.enum(["team", "individual"]),
-  ageGroup: z.number().optional(),
+  ageGroup: z.string(),
   gender: z.enum(["male", "female", "mixed"]),
-  recordHolder: z.string().optional(),
-  measurementMetric: z.string().optional(),
-  record: z.string().optional(),
+  recordHolder: z.string().optional().nullable(),
+  measurementMetric: z.string(),
+  record: z.string().optional().nullable(),
   status: z.enum(["pending", "complete"]).optional(),
   isRecordBroken: z.boolean().optional(),
+    measurementNature: z.enum(natures),
+
 })
 
 type SessionEventSchemaType = z.infer<typeof SessionEventSchema>
@@ -49,17 +52,19 @@ export default function SessionEventDialogForm({
     const {settings} = useSettings();
 
   const defaultValues: SessionEventSchemaType = {
-    eventNumber: event?.eventNumber || 1,
-    title: event?.title || "",
-    description: event?.description || "",
-    type: event?.type || "individual",
-    ageGroup: event?.ageGroup || 0,
-    gender: event?.gender || "mixed",
-    recordHolder: event?.recordHolder || "",
-    measurementMetric: event?.measurementMetric || "",
-    record: event?.record || "",
-    status: event?.status || "pending",
-    isRecordBroken: event?.isRecordBroken || false,
+    eventNumber: 1,
+    title:  "",
+    description: "",
+    type:  "individual",
+    ageGroup:  "",
+    gender: "mixed",
+    recordHolder: "",
+    measurementMetric:  "",
+    record:  "",
+    status:  "pending",
+    isRecordBroken:  false,
+      measurementNature:  "time",
+
   }
 
   const form = useForm({
@@ -91,6 +96,26 @@ export default function SessionEventDialogForm({
       Toast({ message: error.message, variation: "error" })
     }
   }
+
+    useEffect(() => {
+        if(event){
+            form.reset({
+                eventNumber: event?.eventNumber??0,
+                title: event?.title??"",
+                description: event?.description??"",
+                type: event?.type??"team",
+                ageGroup: event?.ageGroup??"",
+                gender: event?.gender??"male",
+                recordHolder: event?.recordHolder || "",
+                measurementMetric: event?.measurementMetric??"",
+                record: event?.record??"",
+                status: event?.status??"pending",
+                isRecordBroken: event?.isRecordBroken??false,
+                measurementNature: event?.measurementNature??"time",
+
+            })
+        }
+    }, [event]);
 
   return (
     <Dialog
@@ -193,19 +218,15 @@ export default function SessionEventDialogForm({
                               <FormItem>
                                   <FormLabel>Age Group</FormLabel>
                                   <FormControl>
-                                          <Select name={field.name} onValueChange={(value)=>{
-                                              console.log(value)
-                                              field.onChange(parseInt(value))
-                                          }} value={field.value.toString()}>
+                                          <Select name={field.name} onValueChange={field.onChange} value={field.value}>
                                               <SelectTrigger className={"capitalize"}>
                                                   <SelectValue placeholder="Select age group" />
                                               </SelectTrigger>
                                               <SelectContent>
                                                   {
                                                       Object.keys(settings.ageGroups).map((item, index) => {
-                                                          const ageGroup = item==="open"?100:parseInt(item.slice(1));
                                                           return (
-                                                              <SelectItem className={"capitalize"} value={ageGroup.toString()} key={item}>{item}</SelectItem>
+                                                              <SelectItem className={"capitalize"} value={item} key={item}>{item}</SelectItem>
                                                           )
                                                       })
                                                   }
@@ -240,19 +261,7 @@ export default function SessionEventDialogForm({
                           )}
                       />
 
-                      <FormField
-                          control={form.control}
-                          name="recordHolder"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Record Holder</FormLabel>
-                                  <FormControl>
-                                      <Input {...field} placeholder="Record Holder Name" />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+
 
                       <FormField
                           control={form.control}
@@ -268,9 +277,34 @@ export default function SessionEventDialogForm({
                                           <SelectContent>
                                               {
                                                   Object.keys(settings.metrics).map((item, index) => {
-                                                      const  metric:string = settings.metrics[item];
                                                       return (
-                                                          <SelectItem className={"capitalize"} value={item} key={item}>{metric}</SelectItem>
+                                                          <SelectItem className={"capitalize"} value={item} key={item}>{item}</SelectItem>
+                                                      )
+                                                  })
+                                              }
+                                          </SelectContent>
+                                      </Select>
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="measurementNature"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Nature of measurement</FormLabel>
+                                  <FormControl>
+                                      <Select name={field.name} onValueChange={field.onChange} value={field.value}>
+                                          <SelectTrigger className={"capitalize"}>
+                                              <SelectValue placeholder="Select metric" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                              {
+                                                  natures.map((item, index) => {
+                                                      return (
+                                                          <SelectItem className={"capitalize"} value={item} key={item}>{item}</SelectItem>
                                                       )
                                                   })
                                               }
@@ -290,6 +324,19 @@ export default function SessionEventDialogForm({
                                   <FormLabel>Record</FormLabel>
                                   <FormControl>
                                       <Input {...field} placeholder="Current Record" />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="recordHolder"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Record Holder</FormLabel>
+                                  <FormControl>
+                                      <Input {...field} placeholder="Record Holder Name" />
                                   </FormControl>
                                   <FormMessage />
                               </FormItem>

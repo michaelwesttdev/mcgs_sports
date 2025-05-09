@@ -1,9 +1,8 @@
 import {useEffect, useState} from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import {PlusCircle, Trash2, Ban, Grid2X2Check, UserRoundX, UserRoundCheck} from "lucide-react"
-
+import {z, ZodSchema} from "zod"
+import {PlusCircle, Trash2, Grid2X2Check, UserRoundX} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -13,11 +12,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
 import { Button } from "~/components/ui/button"
-import { Badge } from "~/components/ui/badge"
 import {nanoid} from "nanoid";
 import {Toast} from "~/components/Toast";
 import {cn} from "~/lib/utils";
@@ -28,23 +25,30 @@ import {getAge} from "@/shared/helpers/dates";
 import {useSettings} from "~/hooks/use_settings";
 import {
   assignPointsPreservingOrder,
-  checkIfRecordHasBeenBroken,
-  getPointsForParticipant
+  checkIfRecordHasBeenBroken
 } from "@/shared/helpers/ps_helpers";
+import {Settings} from "@/shared/settings";
 
-// Define the form schema with Zod
-const eventResultSchema = z.object({
-  results: z.array(
-    z.object({
-      id: z.string(),
-      participantId: z.string().min(1, "Participant is required"),
-      position: z.coerce.number().int().min(0, "Position must be 0 (disqualified) or a positive number"),
-      measurement: z.string().optional(),
-    }),
-  ),
-})
+const createEventResultSchema = (settings: Settings, event: PSEvent) => {
+  const regexPattern = settings?.metrics[event.measurementMetric];
+  const regex = regexPattern ? new RegExp(regexPattern) : /.*/; // fallback to match everything
 
-type EventResultFormValues = z.infer<typeof eventResultSchema>
+  return z.object({
+    bestScore: z
+        .string()
+        .min(1, "Best score is required")
+        .refine(val => regex.test(val), {
+          message: `Best score must match pattern for ${event.measurementMetric} e.g 1.1 or 10.56`,
+        }),
+    results: z.array(
+        z.object({
+          id: z.string(),
+          participantId: z.string().min(1, "Participant is required"),
+          position: z.coerce.number().int().min(0, "Position must be 0 (disqualified) or a positive number"),
+        }),
+    ),
+  });
+};
 
 interface EventResultsDialogProps {
   eventId: string
@@ -64,17 +68,19 @@ interface EventResultsDialogProps {
 export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=true,toggleButton, results,createResult,updateResult,eventId,participants,houses, eventTitle, event }: EventResultsDialogProps) {
   const [open, setOpen] = useState(false)
   const {settings} = useSettings();
+  const [schema,setSchema] = useState<ZodSchema>();
+  type EventResultFormValues = z.infer<typeof schema>
 
   // Initialize form with default values
   const form = useForm<EventResultFormValues>({
-    resolver: zodResolver(eventResultSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
+      bestScore:"",
       results: [
         {
           id: nanoid(),
           participantId: "",
           position: 1,
-          measurement: "",
         },
       ],
     },
@@ -92,7 +98,6 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
       id: nanoid(),
       participantId: "",
       position: fields.length + 1,
-      measurement: "",
     })
   }
 
@@ -105,14 +110,15 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
   const onSubmit = async (data: EventResultFormValues) => {
     try {
       // Add eventId to the submission
-      const submission = assignPointsPreservingOrder(data.results.map(r=>{
+      const submission = assignPointsPreservingOrder(data.results.map((r:{id: string,
+        participantId: string,
+        position: number})=>{
         return {
           id: r.id,
           participantId:r.participantId,
           position: r.position,
-          measurement:r.measurement,
         }
-      }),event.type,"distance",settings,eventId)
+      }),event.type,settings,eventId)
       const isSameEntry = (
           a: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">,
           b: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">
@@ -143,11 +149,17 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
           throw e;
         })
       }
-      const recordStatus = checkIfRecordHasBeenBroken([...alreadyInDB,...newEntries],"distance",event,participants,houses)
-
-      if(recordStatus.isBroken){
-        await updateEvent(event.id,{record:recordStatus.newRecord,recordHolder:recordStatus.recordHolder,isRecordBroken:recordStatus.isBroken})
-      }
+      const recordStatus = checkIfRecordHasBeenBroken(data.bestScore,[...alreadyInDB,...newEntries],"distance",event,participants,houses)
+      const recordData = recordStatus.isBroken?
+          {record:recordStatus.newRecord,
+           recordHolder:recordStatus.recordHolder,
+           isRecordBroken:recordStatus.isBroken
+          }:{};
+      await updateEvent(event.id,{
+        bestScore:data.bestScore,
+        status:[...alreadyInDB,...newEntries].length>0?"complete":"pending",
+        ...recordData
+      })
       Toast({
         variation: "success",
         message: "Event results have been saved successfully.",
@@ -171,11 +183,15 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
           id: result.id,
           participantId: result.participantId,
           position: result.position,
-          measurement: result.measurement || "",
         })),
       });
     }
   }, [open, results]);
+  useEffect(() => {
+    if (open && event && settings) {
+      setSchema(createEventResultSchema(settings,event))
+    }
+  }, [open, event,settings]);
   return (
     <Dialog open={open} onOpenChange={(v)=>{
       if(!canOpen) {
@@ -206,8 +222,31 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Results</h3>
+                <div className="flex flex-col">
+                  <h3 className="text-lg font-medium underline">Results</h3>
+                  <FormField
+                      control={form.control}
+                      name={`bestScore`}
+                      render={({ field }) => (
+                          <FormItem className={"flex flex-1 items-center gap-2"}>
+                            <FormLabel className={"flex flex-col text-[14px] w-full"}>Best Score
+                              <span className={"text-xs text-muted-foreground"}>NB: use only numbers</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                  type="number"
+
+                                  {...field}
+                                  placeholder={"e.g, 1.56"}
+                                  className={
+                                    cn("w-full")
+                                  }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                      )}
+                  />
                 </div>
 
                 {fields.map((field, index) => (
@@ -272,8 +311,7 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
                                   <SeachableSelectWithCreationLogic canCreate={false} options={event?.type === "individual"
                                       ? participants
                                           .filter((p) => {
-                                            const groupKey = event?.ageGroup === 100 ? "open" : `U${event?.ageGroup}`;
-                                            const ageGroup = settings?.ageGroups[groupKey];
+                                            const ageGroup = settings?.ageGroups[event.ageGroup];
                                             const age = getAge(p.dob);
 
                                             if (typeof ageGroup === "number") {
@@ -296,21 +334,6 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
                                             value:house.id
                                           }
                                       ))} onChange={field.onChange} value={field.value} placeholder={`Select ${event.type === "individual" ? "participant" : "house"}`}/>
-                                  <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name={`results.${index}.measurement`}
-                            render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className={"grid text-[14px]"}>Measurement (Optional) <span
-                                      className={"text-xs text-muted-foreground"}>NB: this must be a number</span></FormLabel>
-                                  <FormControl>
-                                  <Input {...field} placeholder="e.g., 1.24" className={"max-w-[60px]"}/>
-                                  </FormControl>
                                   <FormMessage />
                                 </FormItem>
                             )}

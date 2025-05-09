@@ -8,11 +8,12 @@ import EventsPage from "./pages/events";
 import SessionsLayout from "./pages/sessions/Layout";
 import SessionViewPage from "./pages/sessions/session";
 import SettingsPage from "~/pages/settings";
+import {ErrorBoundary} from "~/rootErrorBoundary";
 
 export default function App() {
   return (
     <Routes>
-      <Route element={<RootLayout />}>
+      <Route element={<RootLayout />} errorElement={<ErrorBoundary/>}>
         <Route index element={<DashboardPage />} />
         <Route path='sessions' element={<SessionsLayout />}>
           <Route index element={<SessionsPage />} />

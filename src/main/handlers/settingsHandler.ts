@@ -14,15 +14,23 @@ export class SettingsHandler {
     private merge({defaultSettings, newSettings}:{defaultSettings:Settings, newSettings:Partial<Settings>} ){
         return {...defaultSettings,...newSettings}
     }
-    private async getSettings (){
+    private async getSettings() {
         try {
-            const rawSettings = await fs.readFile(this.settingsPath,{encoding:"utf-8"});
-            let settings:Settings = JSON.parse(rawSettings);
-            if(!settings){
-                settings = (await this.updateSettings(this.defaultSettings)).data??this.defaultSettings;
+            const rawSettings = await fs.readFile(this.settingsPath, { encoding: "utf-8" });
+            const settings: Settings = JSON.parse(rawSettings);
+            return { success: true, data: settings };
+        } catch (e: any) {
+            // If the file doesn't exist or is not a valid file, fallback to default
+            if (e.code === 'ENOENT' || e.code === 'EISDIR') {
+                try {
+                    const result = await this.updateSettings(this.defaultSettings);
+                    return { success: true, data: result.data ?? this.defaultSettings };
+                } catch (updateErr) {
+                    return this.handleError(updateErr);
+                }
             }
-        }catch (e){
-            console.log(e);
+
+            console.error("Failed to read settings:", e);
             return this.handleError(e);
         }
     }

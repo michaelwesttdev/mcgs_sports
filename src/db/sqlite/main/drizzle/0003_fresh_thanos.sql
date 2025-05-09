@@ -1,0 +1,1 @@
+ALTER TABLE `event` ADD `measurement_nature` text;

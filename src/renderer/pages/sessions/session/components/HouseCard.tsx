@@ -19,8 +19,9 @@ type HouseProps = {
     fetchHouses: () => Promise<void>;
     points:number;
     position:number;
+    disqualified:number;
 };
-export default function HouseCard({points,position, house, onUpdate,fetchHouses,participants,houses, onDelete }: HouseProps) {
+export default function HouseCard({points,position,disqualified, house, onUpdate,fetchHouses,participants,houses, onDelete }: HouseProps) {
 
     return (
         <TableRow>
@@ -28,6 +29,7 @@ export default function HouseCard({points,position, house, onUpdate,fetchHouses,
             <TableCell className='font-medium'>{house.name}</TableCell>
             <TableCell className='font-medium'>{house.abbreviation??"N/A"}</TableCell>
             <TableCell className='hidden md:table-cell'>{participants}</TableCell>
+            <TableCell className='hidden md:table-cell'>{disqualified}</TableCell>
             <TableCell className='hidden md:table-cell'>{points}</TableCell>
             <TableCell className='flex items-center gap-2 justify-end'>
                 <HouseDialogForm houses={houses} fetchHouses={fetchHouses} onUpdate={onUpdate} purpose={"edit"} house={house}/>

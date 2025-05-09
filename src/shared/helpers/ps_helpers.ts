@@ -14,33 +14,30 @@ export function assignPointsPreservingOrder(
         id: string;
         participantId: string;
         position: number; // ignored
-        measurement: string; // e.g., "12.34" (seconds or meters)
     }[],
     eventType: "team" | "individual",
-    eventNature: "timed" | "distance",
     settings: Settings,
     eventId: string
 ): Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[] {
     // Step 1: Parse valid numeric measurements
     const validResults = results
-        .filter(r => r.measurement.trim() !== "" && !isNaN(parseFloat(r.measurement)))
-        .map(r => ({ ...r, value: parseFloat(r.measurement) }));
+        .filter(r => r.position>0)
+        .map(r => ({ ...r}));
 
     // Step 2: Sort based on event nature
     const sorted = [...validResults].sort((a, b) =>
-        eventNature === "timed" ? a.value - b.value : b.value - a.value
+        a.position - b.position
     );
 
     // Step 3: Group by measurement value to detect ties
-    const groups: { value: number; participants: typeof sorted }[] = [];
-    const precision = 0.0001;
+    const groups: { position: number; participants: typeof sorted }[] = [];
 
     for (const r of sorted) {
-        const existingGroup = groups.find(g => Math.abs(g.value - r.value) < precision);
+        const existingGroup = groups.find(g=>g.position === r.position);
         if (existingGroup) {
             existingGroup.participants.push(r);
         } else {
-            groups.push({ value: r.value, participants: [r] });
+            groups.push({ position: r.position, participants: [r] });
         }
     }
 
@@ -77,7 +74,6 @@ export function assignPointsPreservingOrder(
             eventId,
             participantId: r.participantId,
             position: isDisqualified ? 0 : mapped.adjustedPosition,
-            measurement: r.measurement,
             participantType: eventType === "team" ? "house" : "participant",
             points: isDisqualified
                 ? getPointsForParticipant(0, eventType, settings, true)
@@ -86,8 +82,8 @@ export function assignPointsPreservingOrder(
     });
 }
 
-export function checkIfRecordHasBeenBroken(results:Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[],eventNature: "timed" | "distance",event:PSEvent,participants:PSParticipant[],houses:PSHouse[]){
-    const hasRecord = !!(event.record && event.recordHolder);
+export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[],eventNature:PSEvent["measurementNature"],event:PSEvent,participants:PSParticipant[],houses:PSHouse[]){
+    const hasRecord = !!(event?.record && event?.recordHolder);
     const winner = results.find(r=>r.position === 1);
     if(!winner) return {
         isBroken:false
@@ -97,15 +93,15 @@ export function checkIfRecordHasBeenBroken(results:Omit<PSEventResult, "createdA
     if(!hasRecord){
         return {
             isBroken: true,
-            newRecord: winner.measurement,
+            newRecord: bestScore,
             recordHolder: winnerName
         };
     }
-    const isBroken = eventNature === "timed"? event.record>winner.measurement:event.record<winner.measurement
+    const isBroken = event.measurementNature === "time"? parseFloat(event.record)>parseFloat(bestScore):parseFloat(event.record)<parseFloat(bestScore)
     if(isBroken){
         return {
             isBroken: true,
-            newRecord: winner.measurement,
+            newRecord: bestScore,
             recordHolder: winnerName
         };
     }

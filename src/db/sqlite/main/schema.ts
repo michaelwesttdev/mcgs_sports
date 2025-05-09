@@ -31,9 +31,10 @@ const Event = sqliteTable("event", {
     .notNull()
     .references(() => Discipline.id, { onDelete: "cascade" }),
   type: text("type", { enum: ["team", "individual"] }).notNull(),
-  ageGroup: integer("age_group"),
-  gender: text("gender", { enum: ["male", "female", "mixed"] }).notNull(),
+  measurementNature: text("measurement_nature",{enum:["time", "distance", "score", "points"]}),
   measurementMetric: text("measurement_metric"),
+  ageGroup: text("age_group").notNull(),
+  gender: text("gender", { enum: ["male", "female", "mixed"] }).notNull(),
   ...timestamps,
 });
 // sessions

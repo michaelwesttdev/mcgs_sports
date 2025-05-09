@@ -17,7 +17,7 @@ import {Input} from "~/components/ui/input";
 import {Button} from "~/components/ui/button";
 
 type FieldOverride = {
-    component?: "textarea" | "input";
+    component?: "textarea" | "input"|"color"|"number";
     placeholder?: string;
     label?: string;
 };

@@ -1,14 +1,15 @@
 import { ipcRenderer } from "electron";
 import { api as apiExtention } from "./handlers/rendererHandler";
+import {Settings} from "@/shared/settings";
 
 function getVersion() {
   ipcRenderer.invoke("app:version");
 }
 function getSettings() {
-  ipcRenderer.invoke("settings:list");
+  return ipcRenderer.invoke("getSettings");
 }
-function writeSettings(data: any) {
-  ipcRenderer.invoke("settings:write", data);
+function updateSettings(data:Partial<Settings>) {
+  return ipcRenderer.invoke("updateSettings", data);
 }
 function handleClose() {
   ipcRenderer.send("close");
@@ -31,7 +32,7 @@ async function handleSessionDbClose(id: string) {
 const api = {
   getVersion,
   getSettings,
-  writeSettings,
+  updateSettings,
   handleClose,
   handleMinimize,
   handleMaximise,

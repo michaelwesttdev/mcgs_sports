@@ -35,6 +35,13 @@ export function useSessionHelper(sessionId: string) {
           event.disciplineId === session?.disciplineId
       );
       console.log(eventsToImport);
+      if(eventsToImport.length<=0){
+        Toast({
+          message: "No Events found to import",
+          variation: "success",
+        });
+        return
+      }
       const insertedEvents = await window.api.psCreateEvent([
         sessionId,
         eventsToImport,
@@ -70,7 +77,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psUpdateEvent([sessionId,[eventId,eventData]]);
       if (!res.success) throw res.error;
-      await fetchSessionEvents();
+      await refresh();
     } catch (error) {
       console.error("Failed to update event:", error);
       throw error;
@@ -133,7 +140,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psUpdateHouse([sessionId,[houseId,house]]);
       if (!res.success) throw res.error;
-      await fetchSessionHouses();
+      await refresh();
     } catch (error) {
       console.error("Failed to update house:", error);
       throw error;
@@ -182,7 +189,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psUpdateParticipant([sessionId,[id,participant]]);
       if (!res.success) throw res.error;
-      await fetchSessionParticipants();
+      await refresh();
     } catch (error) {
       console.error("Failed to update Participant:", error);
       throw error;
@@ -230,7 +237,7 @@ export function useSessionHelper(sessionId: string) {
     try {
       const res = await window.api.psUpdateEventResult([sessionId,[id,result]]);
       if (!res.success) throw res.error;
-      await fetchSessionEventResults();
+      await refresh();
     } catch (error) {
       console.error("Failed to update EventResults:", error);
       throw error;

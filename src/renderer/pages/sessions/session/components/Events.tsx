@@ -73,7 +73,7 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
                             <PsEventResultsDialog toggleButton={<Button>Enter Results</Button>}
                                                   updateEvent={onUpdate}
                                                   eventId={currentEvent?.id}
-                                                  eventTitle={`${currentEvent?.title} - ${currentEvent?.ageGroup < 100 ? `U${currentEvent?.ageGroup}` : "Open"}`}
+                                                  eventTitle={`${currentEvent?.title} - U${currentEvent?.ageGroup}`}
                                                   event={currentEvent} participants={participants} houses={houses}
                                                   results={results.filter(r=>r.eventId===currentEvent?.id)??[]} createResult={createResult}
                                                   updateResult={updateResult} deleteResult={deleteResult}/>
