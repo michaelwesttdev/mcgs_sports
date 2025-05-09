@@ -22,7 +22,7 @@ const SessionEventSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional(),
   type: z.enum(["team", "individual"]),
-  ageGroup: z.number().optional(),
+  ageGroup: z.string().optional(),
   gender: z.enum(["male", "female", "mixed"]),
   recordHolder: z.string().optional().nullable(),
   measurementMetric: z.string(),
@@ -41,6 +41,7 @@ export default function SessionEventDialogForm({
     onCreate,
     onUpdate,
     trigger,
+    eventNumber,
 }: Readonly<{
   purpose?: "create" | "edit";
   event?: PSEvent;
