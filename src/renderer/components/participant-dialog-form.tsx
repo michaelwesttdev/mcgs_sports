@@ -206,11 +206,7 @@ export default function ParticipantDialogForm({
                                                   id:nanoid(),
                                                   name:data.name,
                                                   abbreviation:data.abbreviation,
-<<<<<<< Updated upstream
                                                   color:data.color
-=======
-                                                  color:data.color,
->>>>>>> Stashed changes
                                               }
                                               await createHouse(newHouse);
                                               field.onChange(newHouse.id);

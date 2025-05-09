@@ -118,6 +118,11 @@ export default function SessionEventDialogForm({
             })
         }
     }, [event]);
+  useEffect(()=>{
+      if(eventNumber){
+          form.setValue("eventNumber", eventNumber);
+      }
+  })
 
   return (
     <Dialog
