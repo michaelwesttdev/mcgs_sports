@@ -16,7 +16,7 @@ import {
     CommandItem,
     CommandEmpty,
 } from "~/components/ui/command";
-import { ZodFormDialog } from "~/components/zod-form-dialog"; // your dynamic form component
+import { FieldOverride, ZodFormDialog } from "~/components/zod-form-dialog"; // your dynamic form component
 
 interface SearchableSelectWithDialogProps<TOption extends { id: string; name: string }> {
     value: string;
@@ -28,6 +28,7 @@ interface SearchableSelectWithDialogProps<TOption extends { id: string; name: st
     dialogTitle?: string;
     onAddOption: (data: any) => Promise<void>;
     placeholder?: string;
+    override?: Record <string, FieldOverride>
 }
 
 export function SearchableSelectWithDialog<TOption extends { id: string; name: string }>({
@@ -40,6 +41,7 @@ export function SearchableSelectWithDialog<TOption extends { id: string; name: s
                                                                                              description = "Add a new item.",
                                                                                              dialogTitle = "Create New",
                                                                                              placeholder = "Select an option",
+                                                                                             override
                                                                                          }: SearchableSelectWithDialogProps<TOption>) {
     const [open, setOpen] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -119,7 +121,7 @@ export function SearchableSelectWithDialog<TOption extends { id: string; name: s
                 </PopoverContent>
             </Popover>
 
-            <ZodFormDialog
+            <ZodFormDialog overrides={override}
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 title={dialogTitle}

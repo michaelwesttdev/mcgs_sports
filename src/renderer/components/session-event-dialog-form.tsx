@@ -22,7 +22,7 @@ const SessionEventSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional(),
   type: z.enum(["team", "individual"]),
-  ageGroup: z.string(),
+  ageGroup: z.number().optional(),
   gender: z.enum(["male", "female", "mixed"]),
   recordHolder: z.string().optional().nullable(),
   measurementMetric: z.string(),
@@ -46,7 +46,8 @@ export default function SessionEventDialogForm({
   event?: PSEvent;
     onCreate?: (data: SessionEventSchemaType) => Promise<void>;
     onUpdate?: (id:string,data: Partial<SessionEventSchemaType>) => Promise<void>;
-    trigger?:React.ReactElement
+    trigger?:React.ReactElement,
+    eventNumber?:number
 }>) {
   const [isOpen, setIsOpen] = useState(false)
     const {settings} = useSettings();
@@ -150,6 +151,7 @@ export default function SessionEventDialogForm({
                                   <FormLabel>Event Number</FormLabel>
                                   <FormControl>
                                       <Input
+                                      min={eventNumber}
                                           type="number"
                                           {...field}
                                           onChange={(e) => field.onChange(e.target.value ? Number.parseInt(e.target.value) : 0)}

@@ -11,6 +11,8 @@ import {useEffect, useState} from "react";
 import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import {Toast} from "~/components/Toast";
 import PsEventResultsDialog from "~/components/ps_event_results_dialog";
+import EventCsvDialog from "@/renderer/components/event_CSV_Dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/renderer/components/ui/dropdown-menu";
 
 interface Props {
     createEvent:(event:Omit<PSEvent,"id"|"createdAt"|"updatedAt">)=>Promise<void>;
@@ -30,6 +32,15 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
     const [query, setQuery] = useState("");
     const [currentEvent, setCurrentEvent] = useState<PSEvent>();
 
+    function getLatestEventNumber(){
+        if (!events) return 1;
+        let highest = 0;
+        events.forEach(e=>{
+            highest = e.eventNumber > highest? e.eventNumber : highest;
+        })
+        return highest > 0 ? highest : 1;
+    }
+
     useEffect(() => {
         if (events.length === 0) {
             setCurrentEvent(null);
@@ -46,12 +57,26 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
     return <Card className='w-full'>
         <CardHeader>
             <div className={"flex items-center gap-4"}>
-                <SessionEventDialogForm onCreate={createEvent}/>
-                <Button
+                <SessionEventDialogForm eventNumber={getLatestEventNumber() +1} onCreate={createEvent}/>
+               
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button> Import Events</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem asChild>
+                             <Button
                     onClick={() => importEventsFromMainStore()}
                     aria-description='Import Events from main store'>
-                    Import Events
+                    From Main
                 </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                             <EventCsvDialog/>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+               
             </div>
 
             <CardTitle className='flex items-center justify-between'>

@@ -9,6 +9,7 @@ import SessionEventDialogForm from "~/components/session-event-dialog-form";
 import {DeleteModal} from "~/components/deleteModal";
 import PsEventResultsDialog from "~/components/ps_event_results_dialog";
 import {Badge} from "~/components/ui/badge";
+import { cn } from "@/renderer/lib/utils";
 
 type EventProps = {
     event: PSEvent;
@@ -26,7 +27,7 @@ export default function EventCard({updateResult,createResult,deleteResult,result
     const isCompleted = results.some(r => r.eventId === event.id);
 
     return (
-        <TableRow key={event.id}>
+        <TableRow key={event.id} className={cn(event.status==="complete"&&"bg-muted text-green-800")}>
             <TableCell> {event.eventNumber || "-"}</TableCell>
             <TableCell className='font-medium'>{`${event.title} - ${event.ageGroup}`}</TableCell>
             <TableCell className='font-medium'>{getGenderName(event.gender)}</TableCell>
@@ -46,7 +47,6 @@ export default function EventCard({updateResult,createResult,deleteResult,result
                     <Trash className={"w-4 h-4"}/>
                 </Button>}/>
             </TableCell>
-            <TableCell className={`font-medium ${isCompleted ? "text-green-700 font-semibold" : ""}`}></TableCell>
         </TableRow>
     );
 }

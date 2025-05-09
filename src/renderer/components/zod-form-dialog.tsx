@@ -20,6 +20,7 @@ type FieldOverride = {
     component?: "textarea" | "input"|"color"|"number";
     placeholder?: string;
     label?: string;
+    type?: React.HTMLInputTypeAttribute;
 };
 
 interface ZodFormDialogProps {
@@ -86,7 +87,7 @@ export const ZodFormDialog = ({
                                             {isTextarea ? (
                                                 <Textarea placeholder={placeholder} {...field} />
                                             ) : (
-                                                <Input placeholder={placeholder} {...field} />
+                                                <Input type={override.type?? "text"} placeholder={placeholder} {...field} />
                                             )}
                                         </FormControl>
                                         <FormMessage />
