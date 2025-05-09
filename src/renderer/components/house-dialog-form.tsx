@@ -129,7 +129,7 @@ export default function HouseDialogForm({
                     <Input
                       type="color"
                       {...field}
-                      className="h-10 w-16 p-1 border rounded-md"
+                      className="h-10 w-20 p-1 border rounded-md"
                     />
                   </FormControl>
                   <FormMessage />

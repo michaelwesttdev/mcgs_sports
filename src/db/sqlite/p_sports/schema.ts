@@ -48,7 +48,7 @@ const Participant = sqliteTable(
 // events
 const Event = sqliteTable("event", {
   id: text("id").primaryKey().notNull(),
-  eventNumber: integer("event_number").default(0),
+  eventNumber: integer("event_number").default(1),
   title: text("title", { length: 255 }).notNull(),
   description: text("description"),
   type: text("type", { enum: ["team", "individual"] }).notNull(),
