@@ -13,6 +13,14 @@ export type Settings = {
   points: PointsSettings;
 };
 
+export const generalRegex = {
+  time: "^(\\d{1,2}:\\d{2}(\\.\\d{1,2})?|\\d+(\\.\\d{1,2})?)$", // supports "1:23.45" and "23.04"
+  distance: "^\\d+(\\.\\d+)?$",
+  speed: "^\\d+(\\.\\d+)?$",
+  points: "^\\d+(\\.\\d+)?$",
+  score: "^\\d?$",
+};
+
 export const settings: Settings = {
   ageGroups: {
     U14: [12, 13],

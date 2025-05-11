@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { PlusCircle } from "lucide-react";
+import {PlusCircle, Trash} from "lucide-react";
 import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
 import { useSession } from "@/renderer/hooks/use_session";
 import { useDiscipline } from "@/renderer/hooks/use_discipline";
@@ -78,21 +78,29 @@ export default function SessionsPage({}: Props) {
             onClick={() => {
               navigate(`/sessions/${session.id}`);
             }}
-            className='rounded-2xl shadow-md cursor-pointer select-none hover:scale-105 transition-all duration-200'>
-            <CardContent className='p-4'>
-              <h2 className='text-lg font-semibold'>{session.title}</h2>
-              <p className='text-sm text-gray-500'>
-                Descipline:{" "}
-                {disciplines.find((d) => d.id === session.disciplineId)?.name}
-              </p>
-              <p className='text-sm text-gray-500'>
-                Year: {new Date(session.date).getFullYear()}
-              </p>
+            className='rounded-2xl shadow-md cursor-pointer select-none group hover:scale-105 transition-all duration-200'>
+            <CardContent className='p-4 flex items-center gap-1 flex-row'>
+              <div className={"flex-1"}>
+                <h2 className='text-lg font-semibold'>{session.title}</h2>
+                <p className='text-sm text-gray-500'>
+                  Descipline:{" "}
+                  {disciplines.find((d) => d.id === session.disciplineId)?.name}
+                </p>
+                <p className='text-sm text-gray-500'>
+                  Year: {new Date(session.date).getFullYear()}
+                </p>
+
+              </div>
+              <div className={"flex flex-col gap-2 group-hover:opacity-100 opacity-0"}>
+                <Button className={"w-6 h-6"} variant={"destructive"} size={"icon"}>
+                  <Trash className={"w-4 h-4"}/>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
         {filteredSessions.length === 0 && (
-          <p className='text-center text-gray-500'>No sessions found.</p>
+            <p className='text-center text-gray-500'>No sessions found.</p>
         )}
       </div>
     </div>

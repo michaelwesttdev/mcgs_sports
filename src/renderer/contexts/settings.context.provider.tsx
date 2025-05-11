@@ -3,12 +3,12 @@ import {SettingsService} from "@/services/settings.service";
 import {Settings,settings as defaultSettings} from "@/shared/settings";
 
 interface SettingsContextType{
-    settings:any,
+    settings:Settings,
     fetchSettings:() => Promise<any>
     updateSettings:(data:Partial<Settings>) => Promise<any>
 }
 export const SettingsContext = createContext<SettingsContextType>({
-    settings:{},
+    settings:{...defaultSettings},
     fetchSettings:()=>Promise.resolve({}),
     updateSettings:()=>Promise.resolve({}),
 });

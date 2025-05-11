@@ -9,6 +9,7 @@ import SessionEventDialogForm from "~/components/session-event-dialog-form";
 import {DeleteModal} from "~/components/deleteModal";
 import PsEventResultsDialog from "~/components/ps_event_results_dialog";
 import HouseDialogForm from "~/components/house-dialog-form";
+import {cn} from "~/lib/utils";
 
 type HouseProps = {
     house: PSHouse;
@@ -24,7 +25,9 @@ type HouseProps = {
 export default function HouseCard({points,position,disqualified, house, onUpdate,fetchHouses,participants,houses, onDelete }: HouseProps) {
 
     return (
-        <TableRow>
+        <TableRow className={cn(house.color?`text-[${house.color}]`:"")}
+                  style={{color:house.color&&`${house.color}`}}
+        >
             <TableCell>{position}</TableCell>
             <TableCell className='font-medium'>{house.name}</TableCell>
             <TableCell className='font-medium'>{house.abbreviation??"N/A"}</TableCell>
