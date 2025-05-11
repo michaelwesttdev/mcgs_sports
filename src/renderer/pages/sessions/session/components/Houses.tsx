@@ -153,8 +153,20 @@ export default function Houses({createHouse,results,onUpdate,houses,participants
                                     </div>
                                 </TableCell>
                             </TableRow>
+                        ) :
+                        houses.filter((h)=>h.name.toLowerCase().includes(query.toLowerCase())|| h.abbreviation.toLowerCase().includes(query.toLowerCase())).length === 0 ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={6}
+                                    className='text-center py-8 text-muted-foreground'>
+                                    <div className={"flex items-center flex-col gap-4"}>
+                                        No Houses match your search. Create one below.
+                                        <HouseDialogForm houses={houses} fetchHouses={fetchSessionHouses} onCreate={createHouse} purpose={"create"}/>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
                         ) : (
-                            houses.sort((a,b)=>{
+                           houses.filter((h)=>h.name.toLowerCase().includes(query.toLowerCase())|| h.abbreviation.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>{
                                 return a.name > b.name?1:-1
                             }).map((house) => (
                                 <HouseCard disqualified={disqualifiedTotal.get(house.id)??0} position={positions.get(house.id)} points={points.get(house.id)} key={house.id} house={house} participants={participants.filter(p=>p.houseId===house.id).length} onUpdate={onUpdate} onDelete={onDelete} houses={houses} fetchHouses={fetchSessionHouses}/>

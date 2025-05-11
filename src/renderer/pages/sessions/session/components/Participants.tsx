@@ -25,12 +25,32 @@ interface Props {
 }
 export default function Participants({houses,participants,createHouse,deleteParticipant,createNewParticipant,updateParticipant,fetchParticipants,fetchHouses}:Readonly<Props>){
     const [query, setQuery] = useState("");
+    const filtered = participants.filter((p)=>{
+        const matchesFirstname = p.firstName.toLowerCase().includes(query.toLowerCase());
+        const matchesLastname = p.lastName.toLowerCase().includes(query.toLowerCase());
+        const matchesHouse = houses.find(h=>h.id === p.houseId)?.name.toLowerCase().includes(query.toLowerCase())??false;
+        return matchesFirstname || matchesLastname || matchesHouse;
+    });
 
     return <Card>
         <CardContent>
             <CardHeader className='flex w-full'>
                 <div className='flex flex-1 items-center justify-between gap-2'>
-                    <h2 className='text-lg font-semibold'>Participants</h2>
+                    <div className='flex flex-1 items-center gap-2'>
+                                         <h2 className='text-lg font-semibold'>Participants</h2>
+                                        <div className='flex-1 flex gap-8 items-center justify-between p-3'>
+                                            <div className='flex-1'>
+                                                <Input
+                                                    placeholder='Search by Firstname, Lastname or house'
+                                                    className='max-w-60'
+                                                    onChange={(e) => setQuery(e.target.value)}
+                                                    value={query}
+                                                />
+                                            </div>
+                                           
+                                        </div>
+                                    </div>
+                    
                     <ParticipantDialogForm createHouse={createHouse} houses={houses} fetchHouses={fetchHouses} onCreate={createNewParticipant}/>
                 </div>
             </CardHeader>
@@ -62,8 +82,20 @@ export default function Participants({houses,participants,createHouse,deletePart
                                             </div>
                                         </TableCell>
                                     </TableRow>
+                                ):
+                                filtered.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={6}
+                                            className='text-center py-8 text-muted-foreground'>
+                                            <div className={"flex items-center flex-col gap-4"}>
+                                                No Participants Match Your Search. Create one below.
+                                                <ParticipantDialogForm createHouse={createHouse} houses={houses} fetchHouses={fetchHouses} onCreate={createNewParticipant}/>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
                                 ) : (
-                                    participants.sort((a,b)=>{
+                                    filtered.sort((a,b)=>{
                                         return `${a.firstName} ${a.lastName}` > `${b.firstName} ${b.lastName}`?1:-1
                                     }).map((participant) => (
                                         <ParticipantCard

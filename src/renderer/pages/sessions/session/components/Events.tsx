@@ -137,10 +137,25 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
                                     No events found
                                 </TableCell>
                             </TableRow>
+                        ) : 
+                        events.filter(ev=>{
+                            const q  = parseInt(query)
+                            const t = `${ev.title} - ${ev.ageGroup}`
+                            return t.toLowerCase().includes(query.toLowerCase())|| ev.eventNumber === (isNaN(q)?0:q)
+                        }).length === 0 ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={6}
+                                    className='text-center py-8 text-muted-foreground'>
+                                    No events match your search
+                                </TableCell>
+                            </TableRow>
                         ) : (
-                            events.sort((a,b)=>{
-                                return a.eventNumber > b.eventNumber?1:-1
-                            }).map((event) => (
+                            events.filter(ev=>{
+                            const q  = parseInt(query)
+                            const t = `${ev.title} - ${ev.ageGroup}`
+                            return t.toLowerCase().includes(query.toLowerCase())|| ev.eventNumber === (isNaN(q)?0:q)
+                        }).map((event) => (
                                 <EventCard
                                     participants={participants}
                                     houses={houses}
