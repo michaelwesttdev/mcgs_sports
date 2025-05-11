@@ -27,29 +27,21 @@ import {
   assignPointsPreservingOrder,
   checkIfRecordHasBeenBroken
 } from "@/shared/helpers/ps_helpers";
-import {Settings} from "@/shared/settings";
+import {generalRegex, Settings} from "@/shared/settings";
 
-const createEventResultSchema = (settings: Settings, event: PSEvent) => {
-  const regexPattern = settings?.metrics[event.measurementMetric];
-  const regex = regexPattern ? new RegExp(regexPattern) : /.*/; // fallback to match everything
-
-  return z.object({
-    bestScore: z
-        .string()
-        .min(1, "Best score is required")
-        .refine(val => regex.test(val), {
-          message: `Best score must match pattern for ${event.measurementMetric} e.g 1.1 or 10.56`,
-        }),
-    results: z.array(
-        z.object({
-          id: z.string(),
-          participantId: z.string().min(1, "Participant is required"),
-          position: z.coerce.number().int().min(0, "Position must be 0 (disqualified) or a positive number"),
-        }),
-    ),
-  });
-};
-
+const EventResultSchema = z.object({
+  bestScore: z
+      .string()
+      .min(1, "Best score is required"),
+  results: z.array(
+      z.object({
+        id: z.string(),
+        participantId: z.string().min(1, "Participant is required"),
+        position: z.coerce.number().int().min(0, "Position must be 0 (disqualified) or a positive number"),
+      }),
+  ),
+});
+type EventResultFormValues = z.infer<typeof EventResultSchema>
 interface EventResultsDialogProps {
   eventId: string
   eventTitle: string
@@ -68,12 +60,11 @@ interface EventResultsDialogProps {
 export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=true,toggleButton, results,createResult,updateResult,eventId,participants,houses, eventTitle, event }: EventResultsDialogProps) {
   const [open, setOpen] = useState(false)
   const {settings} = useSettings();
-  const [schema,setSchema] = useState<ZodSchema>();
-  type EventResultFormValues = z.infer<typeof schema>
+
 
   // Initialize form with default values
   const form = useForm<EventResultFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(EventResultSchema),
     defaultValues: {
       bestScore:"",
       results: [
@@ -109,6 +100,11 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
   // Submit handler
   const onSubmit = async (data: EventResultFormValues) => {
     try {
+      const pattern = generalRegex[settings.metrics[event.measurementMetric] as keyof typeof generalRegex];
+      const regex = new RegExp(pattern, "i");
+      if(!regex.test(data.bestScore)){
+        return Toast({message:"Best score must be a number or decimal with \".\" as decimal place.",variation:"error"})
+      }
       // Add eventId to the submission
       const submission = assignPointsPreservingOrder(data.results.map((r:{id: string,
         participantId: string,
@@ -179,6 +175,7 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
   useEffect(() => {
     if (open && results.length > 0) {
       form.reset({
+        bestScore: event.bestScore??"",
         results: results.map(result => ({
           id: result.id,
           participantId: result.participantId,
@@ -187,11 +184,6 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
       });
     }
   }, [open, results]);
-  useEffect(() => {
-    if (open && event && settings) {
-      setSchema(createEventResultSchema(settings,event))
-    }
-  }, [open, event,settings]);
   return (
     <Dialog open={open} onOpenChange={(v)=>{
       if(!canOpen) {
@@ -213,6 +205,7 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
       <DialogContent className="sm:max-w-[600px] px-0">
         <ScrollArea className={"max-h-[90dvh] px-3"}>
           <DialogHeader>
+            <h2 className={"font-bold"}>Event #{event.eventNumber}</h2>
             <DialogTitle>Enter Results for {eventTitle}</DialogTitle>
             <DialogDescription>
               Add the results for this event. Click the plus button to add more entries.
@@ -311,7 +304,8 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
                                   <SeachableSelectWithCreationLogic canCreate={false} options={event?.type === "individual"
                                       ? participants
                                           .filter((p) => {
-                                            const ageGroup = settings?.ageGroups[event.ageGroup];
+                                            const ageGroup = settings.ageGroups[event.ageGroup];
+                                            console.log("ageGroup", ageGroup);
                                             const age = getAge(p.dob);
 
                                             if (typeof ageGroup === "number") {

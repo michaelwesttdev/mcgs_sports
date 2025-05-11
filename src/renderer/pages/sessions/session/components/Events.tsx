@@ -63,16 +63,17 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
                     <DropdownMenuTrigger asChild>
                         <Button> Import Events</Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent className={"gap-2 flex flex-col"}>
                         <DropdownMenuItem asChild>
                              <Button
+                                 className={"w-full"}
                     onClick={() => importEventsFromMainStore()}
                     aria-description='Import Events from main store'>
                     From Main
                 </Button>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                             <EventCsvDialog/>
+                             <EventCsvDialog triggerClassName={"w-full"}/>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
