@@ -2,6 +2,10 @@
 import { useAppFunctions } from "~/hooks/use_appfuncs";
 import { useState } from "react";
 import DynamicIcon from "./icons/Icon";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
+import { ChevronDown } from "lucide-react";
+import { usePrinters } from "../hooks/use_printers";
 
 interface WindowsTitleBarProps {
   title?: string;
@@ -14,6 +18,7 @@ export function TitleBar({
 }: Readonly<WindowsTitleBarProps>) {
   const { onClose, onMaximize, onMinimize, onRestore } = useAppFunctions();
   const [isMaximized, setIsMaximized] = useState(false);
+  const {printers,selectedPrinter,setSelectedPrinter} = usePrinters()
 
   const handleMaximize = () => {
     isMaximized ? onRestore() : onMaximize();
@@ -31,7 +36,26 @@ export function TitleBar({
             aria-label='Menu'>
             <DynamicIcon color='#ffffff' size={30} name='menu' />
           </button>
-          <span className='text-sm font-medium titlebar flex-1'>{title}</span>
+          <span className='text-sm font-medium titlebar'>{title}</span>
+          <div className="flex flex-1 items-center justify-center">
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild className="focus:border-none border-none focus:outline-none outline-none">
+              <Button className="p-0 hover:bg-transparent focus:border-none border-none focus:outline-none outline-none hover:text-muted-foreground transition-all duration-200" variant="ghost">
+                <span>{selectedPrinter?.displayName??"No Printer Selected"}</span>
+                <ChevronDown/>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                {
+                  printers.map(p=>(
+                    <DropdownMenuItem onClick={()=>{
+                      setSelectedPrinter(p);
+                    }}>{p.displayName}</DropdownMenuItem>
+                  ))
+                }
+            </DropdownMenuContent>
+          </DropdownMenu>
+          </div>
         </div>
         <div className='flex h-full'>
           <button

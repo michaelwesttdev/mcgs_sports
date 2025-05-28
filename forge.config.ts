@@ -28,7 +28,7 @@ const config: ForgeConfig = {
     new MakerRpm({}),
     new MakerDeb({}),
   ],
-  publishers: [
+    publishers: [
     /* 
     new PublisherERS({
       baseUrl: "http://mcsdata.local:8080",

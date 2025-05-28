@@ -69,6 +69,7 @@ export class Main {
     ipcMain.on("win:restore", async () => {
       this.window.restore();
     });
+    
     /* main handlers */
     const db = initDb(MainSchema, {
       dbPath: getMainDbUrl(),
@@ -77,6 +78,16 @@ export class Main {
     const mainDbContext = new MainDBContext(db);
     const mainHandler = new MainHandler(mainDbContext);
     mainHandler.registerMainHandlers();
+    
+    //List of printers
+    ipcMain.handle("printer:list", async(_,args)=>{
+     try {
+       const printers = await this.window.webContents.getPrintersAsync();
+       return {data:printers,success:true};
+     } catch (error) {
+      return {success:false,error}
+     }
+    })
   }
 
   private registerAppHandlers(): void {

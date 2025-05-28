@@ -3,6 +3,7 @@ import DisciplineContextProvider from "./discipline.context.provider";
 import EventContextProvider from "./event.context.provider";
 import SessionContextProvider from "./session.context.provider";
 import SettingsContextProvider from "~/contexts/settings.context.provider";
+import PrintersContextProvider from "./printer.context.provider";
 
 type Props = {
   children: React.ReactNode;
@@ -10,7 +11,8 @@ type Props = {
 
 export default function GlobalContextProvider({ children }: Props) {
   return (
-    <SettingsContextProvider>
+    <PrintersContextProvider>
+      <SettingsContextProvider>
         <DisciplineContextProvider>
             <EventContextProvider>
                 <SessionContextProvider>
@@ -19,5 +21,6 @@ export default function GlobalContextProvider({ children }: Props) {
             </EventContextProvider>
         </DisciplineContextProvider>
     </SettingsContextProvider>
+    </PrintersContextProvider>
   );
 }
