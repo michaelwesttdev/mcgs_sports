@@ -93,7 +93,7 @@ export class Main {
   private registerAppHandlers(): void {
     this.app.setAppUserModelId("com.squirrel.MCGSSports.MCGSSports");
 
-    this.app.on("ready", () => {
+    this.app.on("ready", () => {      
       this.createWindow();
       this.handleUpdates();
     });

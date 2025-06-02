@@ -10,6 +10,8 @@ import {DeleteModal} from "~/components/deleteModal";
 import PsEventResultsDialog from "~/components/ps_event_results_dialog";
 import {Badge} from "~/components/ui/badge";
 import { cn } from "@/renderer/lib/utils";
+import { Dialog, DialogContent, DialogTitle } from "@/renderer/components/ui/dialog";
+import Print from "@/renderer/components/print";
 
 type EventProps = {
     event: PSEvent;
@@ -23,7 +25,7 @@ type EventProps = {
     results: PSEventResult[];
 };
 export default function EventCard({updateResult,createResult,deleteResult,results, event, onUpdate,participants,houses, onDelete }: EventProps) {
-
+    const [printDialogOpen,setPrintDialogOpen] = useState(false)
     const isCompleted = results.some(r => r.eventId === event.id);
 
     return (
@@ -42,11 +44,26 @@ export default function EventCard({updateResult,createResult,deleteResult,result
             </TableCell>
             <TableCell className='flex items-center gap-2 justify-end'>
                 <SessionEventDialogForm purpose={"edit"} event={event} onUpdate={onUpdate}/>
-                <PsEventResultsDialog updateEvent={onUpdate} createResult={createResult} updateResult={updateResult} results={results} deleteResult={deleteResult} participants={participants} houses={houses} eventId={event.id} eventTitle={`${event.title} - ${event.ageGroup} ${getGenderName(event.gender)}`} event={event}/>
+                <PsEventResultsDialog onDone={()=>setPrintDialogOpen(true)} updateEvent={onUpdate} createResult={createResult} updateResult={updateResult} results={results} deleteResult={deleteResult} participants={participants} houses={houses} eventId={event.id} eventTitle={`${event.title} - ${event.ageGroup} ${getGenderName(event.gender)}`} event={event}/>
                 <DeleteModal onDelete={async()=>await onDelete(event.id)} itemName={`event number ${event.eventNumber} (${event.title} - U${event.ageGroup} (${getGenderName((event.gender))}))`} trigger={<Button variant="destructive" size={"icon"} className={`w-6 h-6`}>
                     <Trash className={"w-4 h-4"}/>
                 </Button>}/>
+                <PrintDialog isOpen={printDialogOpen} id={event.id} title={`Print Event Number ${event.eventNumber} - ${event.ageGroup} - ${event.gender}`} setIsOpen={(v)=>setPrintDialogOpen(v)}/>
             </TableCell>
         </TableRow>
     );
+}
+
+function PrintDialog({isOpen=false,id,title="Print Event",setIsOpen}:{isOpen:boolean,id:string,title?:string,setIsOpen:(v:boolean)=>void}){
+    return(
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent>
+                <DialogTitle>{title}</DialogTitle>
+                <div className="flex items-center justify-center gap-5 min-w-[300px]">
+                    <Button variant="destructive">Cancel</Button>
+                    <Print id={id} type="event"/>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
 }

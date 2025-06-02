@@ -55,9 +55,10 @@ interface EventResultsDialogProps {
   deleteResult: (resultId:string) => Promise<void>,
   updateEvent:(eventId:string,data:Partial<PSEvent>)=>Promise<void>,
   toggleButton?:React.ReactElement,
+  onDone:()=>void
 }
 
-export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=true,toggleButton, results,createResult,updateResult,eventId,participants,houses, eventTitle, event }: EventResultsDialogProps) {
+export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,canOpen=true,toggleButton, results,createResult,updateResult,eventId,participants,houses, eventTitle, event }: EventResultsDialogProps) {
   const [open, setOpen] = useState(false)
   const {settings} = useSettings();
 
@@ -163,6 +164,7 @@ export default function PsEventResultsDialog({deleteResult,updateEvent,canOpen=t
 
       setOpen(false)
       form.reset()
+      onDone();
     } catch (error) {
       console.error("Error saving event results:", error)
       Toast({
