@@ -5,7 +5,7 @@ import {Button} from "~/components/ui/button";
 import {Badge} from "~/components/ui/badge";
 import {ScrollArea, ScrollBar} from "~/components/ui/scroll-area";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "~/components/ui/table";
-import EventCard from "~/pages/sessions/session/components/EventCard";
+import EventCard, { PrintDialog } from "~/pages/sessions/session/components/EventCard";
 import {useSessionHelper} from "~/pages/sessions/session/components/useSessionHelper";
 import {useEffect, useState} from "react";
 import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
@@ -27,10 +27,12 @@ interface Props {
     createResult: (result:Omit<PSEventResult,"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
     deleteResult: (id:string) => Promise<void>;
     results: PSEventResult[];
+    sessionId:string
 }
-export default function Events({createEvent,importEventsFromMainStore,events,onUpdate,houses,participants,updateResult,createResult,deleteResult,results,onDelete}:Readonly<Props>){
+export default function Events({createEvent,sessionId,importEventsFromMainStore,events,onUpdate,houses,participants,updateResult,createResult,deleteResult,results,onDelete}:Readonly<Props>){
     const [query, setQuery] = useState("");
     const [currentEvent, setCurrentEvent] = useState<PSEvent>();
+        const [printDialogOpen,setPrintDialogOpen] = useState(false)
 
     function getLatestEventNumber(){
         if (!events) return 1;
@@ -96,7 +98,7 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
                             <p className='font-semibold tracking-wider'>
                                 Current Event: {currentEvent?.eventNumber}
                             </p>
-                            <PsEventResultsDialog toggleButton={<Button>Enter Results</Button>}
+                            <PsEventResultsDialog onDone={()=>{}} toggleButton={<Button>Enter Results</Button>}
                                                   updateEvent={onUpdate}
                                                   eventId={currentEvent?.id}
                                                   eventTitle={`${currentEvent?.title} - U${currentEvent?.ageGroup}`}
@@ -157,6 +159,7 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
                             return t.toLowerCase().includes(query.toLowerCase())|| ev.eventNumber === (isNaN(q)?0:q)
                         }).map((event) => (
                                 <EventCard
+                                sessionId={sessionId}
                                     participants={participants}
                                     houses={houses}
                                     key={event.id}
@@ -174,6 +177,7 @@ export default function Events({createEvent,importEventsFromMainStore,events,onU
                 </Table>
                 <ScrollBar orientation={"horizontal"}/>
             </ScrollArea>
+                            <PrintDialog sessionId={sessionId} isOpen={printDialogOpen} id={currentEvent?.id} title={`Print Event Number ${currentEvent?.eventNumber} - ${currentEvent?.ageGroup} - ${currentEvent?.gender}`} setIsOpen={(v)=>setPrintDialogOpen(v)}/>
         </CardContent>
     </Card>
 }

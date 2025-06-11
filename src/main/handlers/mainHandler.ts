@@ -7,7 +7,7 @@ import {
   IpcChannel,
   PerfomanceSportsChannel,
 } from "@/shared/types/electron.main";
-import { ipcMain } from "electron";
+import { BrowserWindow, ipcMain } from "electron";
 import * as PsSchema from "@/db/sqlite/p_sports/schema";
 import { getSessionDbPath } from "@/shared/helpers/urls";
 import {SettingsHandler} from "@/main/handlers/settingsHandler";
@@ -168,7 +168,28 @@ export class MainHandler {
     });
     const settingsHandler = new SettingsHandler(settings,this.handleError);
     settingsHandler.registerHandlers();
+    ipcMain.handle('printHTML', async (event, { html, printerName, silent }) => {
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: { offscreen: true }
+  });
+
+  await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+
+  return new Promise((resolve, reject) => {
+    win.webContents.print({
+      silent: silent ?? false,
+      deviceName: printerName || '', // use default if not provided
+      printBackground: true
+    }, (success, errorType) => {
+      win.close();
+      if (!success) reject(new Error(errorType));
+      else resolve(true);
+    });
+  });
+});
   }
+  
 
   private handleError(error: any) {
     console.log("error: ",error);

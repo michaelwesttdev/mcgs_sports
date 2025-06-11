@@ -50,7 +50,7 @@ export default function SessionViewPage() {
 
         {/* Events Tab */}
         <TabsContent value='events'>
-          <Events participants={participants} houses={houses} fetchSessionEvents={fetchSessionEvents}
+          <Events sessionId={id} participants={participants} houses={houses} fetchSessionEvents={fetchSessionEvents}
                   importEventsFromMainStore={importEventsFromMainStore} events={events} createEvent={createEvent}
                   onUpdate={updateEvent} onDelete={deleteEvent} updateResult={updateEventResult} createResult={createEventResult}
                   deleteResult={deleteEventResult} results={eventResults} />

@@ -23,8 +23,9 @@ type EventProps = {
     createResult: (result:Omit<PSEventResult,"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
     deleteResult: (id:string) => Promise<void>;
     results: PSEventResult[];
+    sessionId:string
 };
-export default function EventCard({updateResult,createResult,deleteResult,results, event, onUpdate,participants,houses, onDelete }: EventProps) {
+export default function EventCard({updateResult,sessionId,createResult,deleteResult,results, event, onUpdate,participants,houses, onDelete }: EventProps) {
     const [printDialogOpen,setPrintDialogOpen] = useState(false)
     const isCompleted = results.some(r => r.eventId === event.id);
 
@@ -48,20 +49,20 @@ export default function EventCard({updateResult,createResult,deleteResult,result
                 <DeleteModal onDelete={async()=>await onDelete(event.id)} itemName={`event number ${event.eventNumber} (${event.title} - U${event.ageGroup} (${getGenderName((event.gender))}))`} trigger={<Button variant="destructive" size={"icon"} className={`w-6 h-6`}>
                     <Trash className={"w-4 h-4"}/>
                 </Button>}/>
-                <PrintDialog isOpen={printDialogOpen} id={event.id} title={`Print Event Number ${event.eventNumber} - ${event.ageGroup} - ${event.gender}`} setIsOpen={(v)=>setPrintDialogOpen(v)}/>
+                <PrintDialog sessionId={sessionId} isOpen={printDialogOpen} id={event.id} title={`Print Event Number ${event.eventNumber} - ${event.ageGroup} - ${event.gender}`} setIsOpen={(v)=>setPrintDialogOpen(v)}/>
             </TableCell>
         </TableRow>
     );
 }
 
-function PrintDialog({isOpen=false,id,title="Print Event",setIsOpen}:{isOpen:boolean,id:string,title?:string,setIsOpen:(v:boolean)=>void}){
+export function PrintDialog({isOpen=false,id,sessionId,title="Print Event",setIsOpen}:{isOpen:boolean,id:string,sessionId:string,title?:string,setIsOpen:(v:boolean)=>void}){
     return(
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent>
                 <DialogTitle>{title}</DialogTitle>
                 <div className="flex items-center justify-center gap-5 min-w-[300px]">
                     <Button variant="destructive">Cancel</Button>
-                    <Print id={id} type="event"/>
+                    <Print sessionId={sessionId} id={id} type="event"/>
                 </div>
             </DialogContent>
         </Dialog>

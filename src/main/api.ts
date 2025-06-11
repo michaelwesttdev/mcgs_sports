@@ -32,6 +32,7 @@ async function handleSessionDbClose(id: string) {
 async function getPrinterList(){
   return await ipcRenderer.invoke("printer:list")
 }
+
 const api = {
   getVersion,
   getSettings,
@@ -43,6 +44,7 @@ const api = {
   handleSessionDbCreate,
   handleSessionDbClose,
   getPrinterList,
+  printHTML: (args) => ipcRenderer.invoke('printHTML', args),
   ...apiExtention,
 };
 export default api;
