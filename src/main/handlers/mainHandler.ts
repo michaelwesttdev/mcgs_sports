@@ -10,8 +10,8 @@ import {
 import { BrowserWindow, ipcMain } from "electron";
 import * as PsSchema from "@/db/sqlite/p_sports/schema";
 import { getSessionDbPath } from "@/shared/helpers/urls";
-import {SettingsHandler} from "@/main/handlers/settingsHandler";
-import {settings} from "@/shared/settings";
+import { SettingsHandler } from "@/main/handlers/settingsHandler";
+import { settings } from "@/shared/settings";
 
 export class MainHandler {
   private p_sessionsContexts: Map<
@@ -21,7 +21,7 @@ export class MainHandler {
       context: PerformanceSportsDBContext;
     }
   > = new Map();
-  constructor(private db: MainDBContext) {}
+  constructor(private db: MainDBContext) { }
 
   createMainCrudHandler<T>(
     context: "main",
@@ -166,33 +166,33 @@ export class MainHandler {
         this.handleError(error);
       }
     });
-    const settingsHandler = new SettingsHandler(settings,this.handleError);
+    const settingsHandler = new SettingsHandler(settings, this.handleError);
     settingsHandler.registerHandlers();
-    ipcMain.handle('printHTML', async (event, { html, printerName, silent }) => {
-  const win = new BrowserWindow({
-    show: false,
-    webPreferences: { offscreen: true }
-  });
+    ipcMain.handle('printHTML', async (event, { html, deviceName, silent }) => {
+      const win = new BrowserWindow({
+        show: false,
+        webPreferences: { offscreen: true }
+      });
 
-  await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+      await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
 
-  return new Promise((resolve, reject) => {
-    win.webContents.print({
-      silent: silent ?? false,
-      deviceName: printerName || '', // use default if not provided
-      printBackground: true
-    }, (success, errorType) => {
-      win.close();
-      if (!success) reject(new Error(errorType));
-      else resolve(true);
+      return new Promise((resolve, reject) => {
+        win.webContents.print({
+          silent: silent ?? false,
+          deviceName: deviceName || '', // use default if not provided
+          printBackground: true
+        }, (success, errorType) => {
+          win.close();
+          if (!success) reject(new Error(errorType));
+          else resolve(true);
+        });
+      });
     });
-  });
-});
   }
-  
+
 
   private handleError(error: any) {
-    console.log("error: ",error);
+    console.log("error: ", error);
     if (error instanceof RepositoryError) {
       return {
         success: false,

@@ -157,6 +157,8 @@ export default function Events({createEvent,sessionId,importEventsFromMainStore,
                             const q  = parseInt(query)
                             const t = `${ev.title} - ${ev.ageGroup}`
                             return t.toLowerCase().includes(query.toLowerCase())|| ev.eventNumber === (isNaN(q)?0:q)
+                        }).sort((a,b)=>{
+                            return a.eventNumber - b.eventNumber;
                         }).map((event) => (
                                 <EventCard
                                 sessionId={sessionId}

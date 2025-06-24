@@ -1,5 +1,6 @@
 import {Settings} from "@/shared/settings";
 import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
+import { getAge } from "./dates";
 
 export function getPointsForParticipant(position:number,eventType:"team"|"individual",settings:Settings,isDisqualified:boolean){
     const pointAllocationInSettings = settings.points[eventType];
@@ -108,4 +109,20 @@ export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEvent
     return {
         isBroken:false
     };
+}
+
+export function getAgeGroupName(ageGroups:Settings["ageGroups"],dob:string){
+    if(!dob) return "Unknown";
+    const age = getAge(dob);
+    
+    // Find the first age group that matches the age
+    for (const [groupName, groupRange] of Object.entries(ageGroups)) {
+        if(!Array.isArray(groupRange)) {
+           return age>=groupRange?groupName:"Unknown";
+        }else if (age >= groupRange[0] && age <= groupRange[1]) {
+            return groupName;
+        }
+    }
+    
+    return "Unknown"; // If no match found    
 }

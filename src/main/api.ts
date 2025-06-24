@@ -44,7 +44,7 @@ const api = {
   handleSessionDbCreate,
   handleSessionDbClose,
   getPrinterList,
-  printHTML: (args) => ipcRenderer.invoke('printHTML', args),
+  printHTML: (args:Electron.WebContentsPrintOptions&{html:string}) => ipcRenderer.invoke('printHTML', args),
   ...apiExtention,
 };
 export default api;

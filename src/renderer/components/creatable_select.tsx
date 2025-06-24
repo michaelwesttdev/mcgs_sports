@@ -28,21 +28,21 @@ interface SearchableSelectWithDialogProps<TOption extends { id: string; name: st
     dialogTitle?: string;
     onAddOption: (data: any) => Promise<void>;
     placeholder?: string;
-    override?: Record <string, FieldOverride>
+    override?: Record<string, FieldOverride>
 }
 
 export function SearchableSelectWithDialog<TOption extends { id: string; name: string }>({
-                                                                                             value,
-                                                                                             onChange,
-                                                                                             options,
-                                                                                             schema,
-                                                                                             onAddOption,
-                                                                                             label = "Add New",
-                                                                                             description = "Add a new item.",
-                                                                                             dialogTitle = "Create New",
-                                                                                             placeholder = "Select an option",
-                                                                                             override
-                                                                                         }: SearchableSelectWithDialogProps<TOption>) {
+    value,
+    onChange,
+    options,
+    schema,
+    onAddOption,
+    label = "Add New",
+    description = "Add a new item.",
+    dialogTitle = "Create New",
+    placeholder = "Select an option",
+    override
+}: SearchableSelectWithDialogProps<TOption>) {
     const [open, setOpen] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [search, setSearch] = useState("");

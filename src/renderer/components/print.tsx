@@ -1,30 +1,73 @@
-import { PSEvent, PSEventResult } from "@/db/sqlite/p_sports/schema";
+import { PSEvent, PSEventResult, PSHouse, PSParticipant } from "@/db/sqlite/p_sports/schema";
 import { Button } from "./ui/button";
 import { usePrinters } from "../hooks/use_printers";
+import { Toast } from "./Toast";
+import { format } from "date-fns";
+import { getAgeGroupName } from "@/shared/helpers/ps_helpers";
+import { Settings } from "@/shared/settings";
+import { useSettings } from "../hooks/use_settings";
+import { P } from "framer-motion/dist/types.d-CQt5spQA";
 
+type PrintOptions = {
+  maxPositions?: number;
+  includePageBreaks?: boolean;
+  printOnlyCompletedEvents?: boolean;
+};
 type Props = {
-  id: string;
+  id?: string;
   type: "session" | "event";
   sessionId: string;
+  printOptions?: PrintOptions;
+  onDone?: () => void;
 };
-export default function Print({ id, type, sessionId }: Props) {
-  const {selectedPrinter} = usePrinters();
+
+type eventDataToPrint = {
+  eventName: string;
+  eventNumber: number;
+  sex: "male" | "female" | "mixed";
+  age_group: string;
+  event_type: "team" | "individual";
+  eventRecord: string;
+  results: Promise<{
+    pos: number;
+    participantId: string;
+    name: string;
+    house: string;
+    age_group: string;
+    sex: string;
+    hp: number;
+    vlp: number;
+    additionalInfo: string;
+  }>[]
+  firstPosMeasurement: string;
+  newRecord: string;
+}
+type LudorumKind={
+    name: string;
+    age_group: string;
+    gender: string;
+    total: number;
+}
+export default function Print({ id, type, sessionId,printOptions,onDone }: Props) {
+  const { selectedPrinter } = usePrinters();
+  const {settings} = useSettings();
   function handlePrint() {
     switch (type) {
       case "event":
         printEvent();
         break;
       case "session":
-        printSession();
+        printSession(printOptions);
         break;
       default:
         return;
     }
+    onDone();
   }
   async function printEvent() {
-    const dataToPrint = await getEventDataToPrint(id, sessionId);
+    const dataToPrint = await getEventDataToPrint(id, sessionId,settings);
     const dataResults = await Promise.all(dataToPrint.results);
-    const firstPos = dataResults.filter(res=>res.pos === 1);
+    const eventDataHtml= await renderEventBlock(dataToPrint, dataResults.length, false);
     const structure = `
    <!DOCTYPE html>
 <html lang="en">
@@ -35,7 +78,7 @@ export default function Print({ id, type, sessionId }: Props) {
     @media print {
       @page {
         size: A4 portrait; /* Change to A5 if needed */
-        margin: 1.5cm;
+        margin: 0.5cm;
       }
 
       body {
@@ -83,24 +126,16 @@ export default function Print({ id, type, sessionId }: Props) {
     }
 
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      table-layout: fixed;
-      font-size: 10pt;
-    }
-
-    th, td {
-      border: 1px solid #000;
-      text-align: center;
-      padding: 5px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    th.pos, td.pos { width: 1.2cm; }
-    th.name, td.name { width: 6.5cm; }
-    th.small, td.small { width: 2.2cm; }
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 10pt;
+      }
+      th, td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+      }
 
     .footer-section {
       margin-top: 30px;
@@ -127,92 +162,233 @@ export default function Print({ id, type, sessionId }: Props) {
 
   <div class="field-group">
     <label for="eventNumber">Event Number:</label>
-    <input type="text" value={${dataToPrint.eventNumber}} id="eventNumber">
+    <input type="text" value=${dataToPrint.eventNumber} id="eventNumber">
 
     <label for="eventName">Event Name:</label>
-    <input type="text" value={${dataToPrint.eventName}} id="eventName">
+    <input type="text" value=${dataToPrint.eventName} id="eventName">
 
     <label for="eventSex">Event Sex:</label>
-    <input type="text" value={${dataToPrint.sex}} id="eventSex">
+    <input type="text" value=${dataToPrint.sex} id="eventSex">
 
     <label for="eventAgeGroup">Event Age Group:</label>
-    <input type="text" value={${dataToPrint.age_group}} id="eventAgeGroup">
+    <input type="text" value=${dataToPrint.age_group} id="eventAgeGroup">
 
     <label for="eventType">Event Type:</label>
-    <input type="text" value={${dataToPrint.event_type}} id="eventType">
+    <input type="text" value=${dataToPrint.event_type} id="eventType">
 
     <label for="eventRecord">Event Record:</label>
-    <input type="text" value={${dataToPrint.eventRecord}} id="eventRecord">
+    <input type="text" value=${dataToPrint.eventRecord} id="eventRecord">
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th class="pos">Pos</th>
-        <th class="name">Name</th>
-        <th class="small">House</th>
-        <th class="small">Age G</th>
-        <th class="small">Sex</th>
-        <th class="small">HP</th>
-        <th class="small">VLP</th>
-        <th class="small">Additional Info</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${
-        dataResults.map(res=>(
-          `
-          <tr>
-            <td class="pos">${res.pos}</td>
-            <td class="name">${res.name}</td>
-            <td class="small">${res.house}</td>
-            <td class="small">${res.age_group}</td>
-            <td class="small">${res.sex}</td>
-            <td class="small">${res.hp}</td>
-            <td class="small">${res.vlp}</td>
-            <td class="small">${res.additionalInfo}</td>
-          </tr>
-          `
-        ))
-      }
-    </tbody>
-  </table>
-
-  <div class="footer-section">
-    <p><label for="firstPosition">First Position (Time/Distance):</label><input type="text" value={${dataToPrint.eventRecord}} id="firstPosition"></p>
-    ${dataToPrint.newRecord&&`<p><label for="newRecord">New Record:</label><input type="text" ${dataToPrint.newRecord}  id="newRecord"></p> <p><label for="setBy">Set By:</label><input type="text" ${firstPos[0].name} id="setBy"></p>`}
-  </div>
+  ${eventDataHtml}
 
 </body>
 </html>
 
     `;
-    await window.api.printHTML({
-    html: structure,
-    printerName: selectedPrinter?.name,
-    silent: true
-  });
+    try {
+      await window.api.printHTML({
+        html: structure,
+        deviceName: selectedPrinter?.name,
+        silent: true
+      });
+    } catch (error) {
+      Toast({ message: error.message, variation: "error" });
+    }
   }
-  function printSession() {}
+
+  async function printSession(options: PrintOptions = {}) {
+    const { maxPositions , includePageBreaks} = options;
+    const sessionDataToPrint = await getSessionDataToPrint(sessionId,settings,options.printOnlyCompletedEvents);
+    const {
+      events, ludorum, allEventData,housePointsSummary
+    } = sessionDataToPrint;
+
+    const summaryHTML = await renderSessionSummary(sessionId, events.length, events.filter(e=>e.status==="complete").length,housePointsSummary);
+    const victorHTML = renderLudorumTable("Victor Ludorum (Male)", ludorum.male);
+    const victrixHTML = renderLudorumTable("Victrix Ludorum (Female)", ludorum.female);
+    const eventsHTML = await Promise.all(
+      allEventData.map((data) => renderEventBlock(data, maxPositions, includePageBreaks))
+    );
+
+    const fullHTML = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Session Printout</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 11pt;
+        margin: 1.5cm;
+      }
+      h1, h2 {
+        text-align: center;
+        text-transform: uppercase;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 10pt;
+      }
+      th, td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+      }
+      .page-break {
+        page-break-after: always;
+      }
+        .no-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+      .border{
+        border: 1px solid black;
+        margin-top: 5px;
+        padding:5px;
+      }
+    </style>
+  </head>
+  <body>
+
+    ${summaryHTML}
+    ${victorHTML}
+    ${victrixHTML}
+    ${eventsHTML.join("")}
+
+  </body>
+  </html>
+  `;
+
+    try {
+      await window.api.printHTML({
+        html: fullHTML,
+        deviceName: selectedPrinter?.name,
+        silent: true
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
   return <Button onClick={handlePrint}>Print</Button>;
 }
 
-async function getSessionDataToPrint(id: string, sessionId: string) {
-  const session = await window.api.mainReadSession(id);
-  const sessionEvents = await window.api.psListEvent([id]);
-  if (!sessionEvents.success) return;
+async function getSessionDataToPrint(sessionId: string,settings:Settings, printOnlyCompletedEvents: boolean = false) {
+  const session = await window.api.mainReadSession(sessionId);
+  const events = await window.api.psListEvent(sessionId);
+  if (!session.success || !events.success) {
+    throw new Error("Failed to fetch session or events data");
+  }
+  const eventResults = await window.api.psListEventResults(sessionId);
+  if (!eventResults.success) {
+    throw new Error("Failed to fetch event results data");
+  }
+  const participants = await window.api.psListParticipant(sessionId);
+  if (!participants.success) {
+    throw new Error("Failed to fetch participants data");
+  }
+  const houses = await window.api.psListHouse(sessionId);
+  if (!houses.success) {
+    throw new Error("Failed to fetch houses data");
+  }
+  const housePointsMap = new Map<string,{name:string,points:number}>();
+  houses.data.forEach((house:PSHouse) =>{
+    const resultsForHouse:PSEventResult[] = eventResults.data.filter((r:PSEventResult) =>{
+      const isTeam = r.participantType === "house";
+      if(isTeam){
+        return r.participantId === house.id;
+      }else{
+        const participant = participants.data.find((p:PSParticipant) => p.id === r.participantId);
+        return participant?.houseId === house.id;
+      }
+    });
+    const totalPoints = resultsForHouse.reduce((sum,result)=>sum+result.points,0)
+    housePointsMap.set(house.id,{name:house.name,points:totalPoints});
+  })
+  const allEventData:eventDataToPrint[] = await Promise.all(events.data.filter((e:PSEvent)=>printOnlyCompletedEvents?e.status==="complete":true).map(async (e: PSEvent) => {
+    const { data, success, error } = await window.api.psReadEvent([
+      sessionId,
+      e.id,
+    ]);
+    if (!success) return null;
+    const event = data as PSEvent;
+    const results = await window.api.psListEventResults(sessionId);
+    if (!results.success) return null;
+    const thisEventResults = (results.data as PSEventResult[]).filter(
+      (res) => res.eventId === e.id
+    );
 
+    return {
+      eventName: event.title,
+      eventNumber: event.eventNumber,
+      sex: event.gender,
+      age_group: event.ageGroup,
+      event_type: event.type,
+      eventRecord: event.record,
+      results: thisEventResults.map(async (res) => {
+        const isHuman = res.participantType === "participant";
+        let pName = "";
+        let hName = "";
+        let participantSex = "";
+        let p_age_group = "";
+        let add = "";
+        if (isHuman) {
+          const p = await window.api.psReadParticipant([
+            sessionId,
+            res.participantId,
+          ]);
+          if (!p.success) {
+            pName = "Unknown";
+            hName = "Unknown";
+            participantSex = "Unknown";
+            p_age_group = "Unknown";
+            add = "Internal App Error";
+          } else {
+            const house = await window.api.psReadHouse([
+              sessionId,
+              p.data.houseId,
+            ]);
+            pName = `${p.data.firstName} ${p.data.lastName}`;
+            hName = !house.success ? "Unknown" : house.data?.name;
+            participantSex = p.data.gender;
+            p_age_group = getAgeGroupName(settings.ageGroups, p.data?.dob);
+            add = "progress";
+          }
+        }
+        return {
+          pos: res.position,
+          participantId: res.participantId,
+          name: pName,
+          house: hName,
+          age_group: p_age_group,
+          sex: participantSex,
+          hp: res.points,
+          vlp: res.points,
+          additionalInfo: add,
+        };
+      }),
+      firstPosMeasurement: event.bestScore,
+      newRecord: event.isRecordBroken ? event.bestScore : "",
+    };
+  }))  as eventDataToPrint[]
+
+  const allResults = await Promise.all(allEventData.flatMap(async (e) => {
+    const results = await Promise.all(e.results);
+    return results.map((r) => ({ ...r, event: e }))
+  }));
+  const ludorum = calculateLudorumTables(allResults.flat());
   return {
-    sessionName: "Hello",
-    events: [
-      {
-        eventName: "100 m sprint U14 Boys",
-        positions: {},
-      },
-    ],
-  };
+    sessionName: session.data.name,
+    ludorum,
+    allEventData,
+    events: events.data as PSEvent[],
+    housePointsSummary:housePointsMap,
+  }
 }
-async function getEventDataToPrint(id: string, sessionId: string) {
+async function getEventDataToPrint(id: string, sessionId: string,settings:Settings) {
   const { data, success, error } = await window.api.psReadEvent([
     sessionId,
     id,
@@ -258,7 +434,7 @@ async function getEventDataToPrint(id: string, sessionId: string) {
           pName = `${p.data.firstName} ${p.data.lastName}`;
           hName = !house.success ? "Unknown" : house.data?.name;
           participantSex = p.data.gender;
-          p_age_group = "progress";
+          p_age_group = getAgeGroupName(settings.ageGroups, p.data?.dob);
           add = "progress";
         }
       }
@@ -267,13 +443,149 @@ async function getEventDataToPrint(id: string, sessionId: string) {
         name: pName,
         house: hName,
         age_group: p_age_group,
+        participantId: res.participantId,
         sex: participantSex,
         hp: res.points,
         vlp: res.points,
         additionalInfo: add,
       };
     }),
-    firstPosMeasurement:event.bestScore,
-    newRecord:event.isRecordBroken?event.bestScore:"",
+    firstPosMeasurement: event.bestScore,
+    newRecord: event.isRecordBroken ? event.bestScore : "",
   };
 }
+function calculateLudorumTables(results: {
+    event: eventDataToPrint;
+    pos: number;
+    participantId: string;
+    name: string;
+    house: string;
+    age_group: string;
+    sex: string;
+    hp: number;
+    vlp: number;
+    additionalInfo: string;
+}[]) {
+  const scores = new Map<string, { name: string; age_group: string; gender: string; total: number }>();
+
+  for (const res of results) {
+    const key = `${res.participantId}`;
+    if (!scores.has(key)) {
+      scores.set(key, {
+        name: res.name,
+        age_group: res.age_group,
+        gender: res.sex,
+        total: 0
+      });
+    }
+    scores.get(key)!.total += res.vlp;
+  }
+
+  type Score = ReturnType<typeof scores.values> extends Iterable<infer T> ? T : never;
+
+const byGroup = Array.from(scores.values()).reduce((acc, curr) => {
+  const key = `${curr.age_group}-${curr.gender}`;
+  if (!acc[key]) acc[key] = [];
+  acc[key].push(curr);
+  return acc;
+}, {} as Record<string, Score[]>);
+
+  const male: LudorumKind[] = [];
+  const female: LudorumKind[] = [];
+
+  for (const [group, list] of Object.entries(byGroup)) {
+    const sorted = list.sort((a, b) => b.total - a.total);
+    if (sorted[0]) {
+      if (sorted[0].gender === "male") male.push(sorted[0]);
+      if (sorted[0].gender === "female") female.push(sorted[0]);
+    }
+  }
+
+  return { male, female };
+}
+async function renderSessionSummary(sessionId: string, eventCount: number,completedEvents: number = 0,housePointsSummary?: Map<string,{name:string,points:number}>) {
+  const session =await window.api.mainReadSession(sessionId);
+  let name = "Unknown Session";
+  let dateOfSession = "Unknown Date";
+  if (session.success) {
+    name = session.data.title || "Unknown Session";
+    dateOfSession = session.data.date || "Unknown Date";
+  }
+  return `
+    <h1>Session Summary</h1>
+    <p><strong>Session ID:</strong> ${sessionId}</p>
+    <p><strong>Session Name:</strong> ${name} - ${dateOfSession}</p>
+    <p><strong>Total Events:</strong> ${eventCount}</p>
+    <p><strong>Completed Events:</strong> ${completedEvents}</p>
+    <p><strong>Generated At:</strong> ${format(new Date(), 'dd MMM yyyy HH:mm')}</p>
+    <hr />
+    <h2>House Points Summary</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Points</th></tr></thead>
+      <tbody>
+        ${Array.from(housePointsSummary).map(house=>`
+          <tr key="${house[0]}">
+            <td>${house[1].name}</td>
+            <td>${house[1].points}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <hr />
+  `;
+}
+function renderLudorumTable(title: string, data: LudorumKind[]) {
+  return `
+    <h2>${title}</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Age Group</th><th>Points</th></tr></thead>
+      <tbody>
+        ${data.map(row => `
+          <tr>
+            <td>${row.name}</td>
+            <td>${row.age_group}</td>
+            <td>${row.total}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+async function renderEventBlock(data: eventDataToPrint, maxPositions: number, pageBreak: boolean) {
+  const dataResults = (await Promise.all(data.results)).slice(0, maxPositions);
+  const firstPos = dataResults.find(r => r.pos === 1);
+
+  return `
+  <div class="${pageBreak ? 'page-break' : 'no-break'} border">
+    <h2>${data.eventName} (${data.sex.toUpperCase()} ${data.age_group})</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Pos</th><th class="name">Name</th><th>House</th><th>Age G</th><th>Sex</th><th>HP</th><th>VLP</th><th>Info</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${dataResults.map(res => `
+          <tr>
+            <td>${res.pos}</td>
+            <td class="name">${res.name}</td>
+            <td>${res.house}</td>
+            <td>${res.age_group}</td>
+            <td>${res.sex}</td>
+            <td>${res.hp}</td>
+            <td>${res.vlp}</td>
+            <td>${res.additionalInfo}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+
+    ${data.newRecord ? `
+      <p><strong>New Record:</strong> ${data.newRecord}</p>
+      <p><strong>Set By:</strong> ${firstPos?.name || "N/A"}</p>
+    ` : ""}
+  </div>
+  `;
+}
+
