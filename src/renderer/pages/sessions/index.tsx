@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import {PlusCircle, Trash} from "lucide-react";
+import {Edit, PlusCircle, Trash} from "lucide-react";
 import NewSessionDialogForm from "@/renderer/components/NewSessionDialogForm";
 import { useSession } from "@/renderer/hooks/use_session";
 import { useDiscipline } from "@/renderer/hooks/use_discipline";
@@ -19,7 +19,7 @@ type Props = {};
 export default function SessionsPage({}: Props) {
   const [searchTitle, setSearchTitle] = useState("");
   const [searchDescipline, setSearchDescipline] = useState("all");
-  const { sessions, listAllSessions } = useSession();
+  const { sessions, listAllSessions,deleteSession } = useSession();
   const { disciplines } = useDiscipline();
   const navigate = useNavigate();
   const filteredSessions = sessions.filter((session) => {
@@ -72,7 +72,16 @@ export default function SessionsPage({}: Props) {
       </div>
 
       <div className='grid gap-4'>
-        {filteredSessions.map((session) => (
+        {filteredSessions.sort((a,b)=>{
+          const dateA = new Date(a.date);
+  const dateB = new Date(b.date);
+
+  // Zero out the time (optional if your dates are already in YYYY-MM-DD format)
+  dateA.setHours(0, 0, 0, 0);
+  dateB.setHours(0, 0, 0, 0);
+
+  return dateB.getTime() - dateA.getTime();
+        }).map((session) => (
           <Card
             key={session.id}
             onClick={() => {
@@ -91,10 +100,27 @@ export default function SessionsPage({}: Props) {
                 </p>
 
               </div>
-              <div className={"flex flex-col gap-2 group-hover:opacity-100 opacity-0"}>
-                <Button className={"w-6 h-6"} variant={"destructive"} size={"icon"}>
+              <div onClick={(e)=>e.stopPropagation()} className={"flex flex-col gap-2 group-hover:opacity-100 opacity-0"}>
+                <Button onClick={async()=>{
+                  await deleteSession(session.id)
+                }} className={"w-6 h-6"} variant={"destructive"} size={"icon"}>
                   <Trash className={"w-4 h-4"}/>
                 </Button>
+                <NewSessionDialogForm trigger={
+                  <Button className='w-6 h-6' variant='outline'>
+                    <Edit className='w-4 h-4' />
+                  </Button>
+                }
+                type="edit"
+                defValues={{
+                  id: session.id,
+                  title: session.title,
+                  date: session.date,
+                  time: session.time,
+                  location: session.location,
+                  disciplineId: session.disciplineId
+                }}
+                />
               </div>
             </CardContent>
           </Card>

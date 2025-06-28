@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react"
+import { useEffect, useState } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {z, ZodSchema} from "zod"
-import {PlusCircle, Trash2, Grid2X2Check, UserRoundX} from "lucide-react"
+import { z, ZodSchema } from "zod"
+import { PlusCircle, Trash2, Grid2X2Check, UserRoundX } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -15,59 +15,64 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
 import { Button } from "~/components/ui/button"
-import {nanoid} from "nanoid";
-import {Toast} from "~/components/Toast";
-import {cn} from "~/lib/utils";
+import { nanoid } from "nanoid";
+import { Toast } from "~/components/Toast";
+import { cn } from "~/lib/utils";
 import SeachableSelectWithCreationLogic from "~/components/seachableSelectWithCreationLogic";
-import {ScrollArea} from "~/components/ui/scroll-area";
-import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
-import {getAge} from "@/shared/helpers/dates";
-import {useSettings} from "~/hooks/use_settings";
+import { ScrollArea } from "~/components/ui/scroll-area";
+import { PSEvent, PSEventResult, PSHouse, PSParticipant } from "@/db/sqlite/p_sports/schema";
+import { getAge } from "@/shared/helpers/dates";
+import { useSettings } from "~/hooks/use_settings";
 import {
   assignPointsPreservingOrder,
   checkIfRecordHasBeenBroken
 } from "@/shared/helpers/ps_helpers";
-import {generalRegex, Settings} from "@/shared/settings";
+import { generalRegex, metrics, Settings } from "@/shared/settings";
+import { Checkbox } from "antd";
+import { TimePicker } from "antd";
+import dayjs from "dayjs";
+import { TimeOtpInput } from "./TimePicker"
 
 const EventResultSchema = z.object({
   bestScore: z
-      .string()
-      .min(1, "Best score is required"),
+    .string()
+    .min(1, "Best score is required"),
   results: z.array(
-      z.object({
-        id: z.string(),
-        participantId: z.string().min(1, "Participant is required"),
-        position: z.coerce.number().int().min(0, "Position must be 0 (disqualified) or a positive number"),
-      }),
+    z.object({
+      id: z.string(),
+      participantId: z.string().min(1, "Participant is required"),
+      position: z.coerce.number().int().min(0, "Position must be 0 (disqualified) or a positive number"),
+    }),
   ),
 });
 type EventResultFormValues = z.infer<typeof EventResultSchema>
 interface EventResultsDialogProps {
   eventId: string
   eventTitle: string
-  event:PSEvent,
-  participants:PSParticipant[],
-  houses:PSHouse[],
-  results:PSEventResult[],
-  canOpen?:boolean,
-  createResult: (result: Omit<PSEventResult,"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>,
-  updateResult: (resultId:string,result: Partial<PSEventResult>)=>Promise<void>,
-  deleteResult: (resultId:string) => Promise<void>,
-  updateEvent:(eventId:string,data:Partial<PSEvent>)=>Promise<void>,
-  toggleButton?:React.ReactElement,
-  onDone:()=>void
+  event: PSEvent,
+  participants: PSParticipant[],
+  houses: PSHouse[],
+  results: PSEventResult[],
+  canOpen?: boolean,
+  createResult: (result: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">) => Promise<void>,
+  updateResult: (resultId: string, result: Partial<PSEventResult>) => Promise<void>,
+  deleteResult: (resultId: string) => Promise<void>,
+  updateEvent: (eventId: string, data: Partial<PSEvent>) => Promise<void>,
+  toggleButton?: React.ReactElement,
+  onDone: () => void
 }
 
-export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,canOpen=true,toggleButton, results,createResult,updateResult,eventId,participants,houses, eventTitle, event }: EventResultsDialogProps) {
+export default function PsEventResultsDialog({ deleteResult, onDone, updateEvent, canOpen = true, toggleButton, results, createResult, updateResult, eventId, participants, houses, eventTitle, event }: EventResultsDialogProps) {
   const [open, setOpen] = useState(false)
-  const {settings} = useSettings();
+  const { settings } = useSettings();
+  const [outOfBoundsAllowance, setOutOfBoundsAllowance] = useState(false);
 
 
   // Initialize form with default values
   const form = useForm<EventResultFormValues>({
     resolver: zodResolver(EventResultSchema),
     defaultValues: {
-      bestScore:"",
+      bestScore: "",
       results: [
         {
           id: nanoid(),
@@ -101,60 +106,63 @@ export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,ca
   // Submit handler
   const onSubmit = async (data: EventResultFormValues) => {
     try {
-      const pattern = generalRegex[settings.metrics[event.measurementMetric] as keyof typeof generalRegex];
+      /* const pattern = metrics[event.measurementNature as keyof typeof metrics][event.measurementMetric as keyof typeof metrics[event.measurementNature as keyof typeof metrics]]
       const regex = new RegExp(pattern, "i");
       if(!regex.test(data.bestScore)){
         return Toast({message:"Best score must be a number or decimal with \".\" as decimal place.",variation:"error"})
-      }
+      } */
       // Add eventId to the submission
-      const submission = assignPointsPreservingOrder(data.results.map((r:{id: string,
+      const submission = assignPointsPreservingOrder(data.results.map((r: {
+        id: string,
         participantId: string,
-        position: number})=>{
+        position: number
+      }) => {
         return {
           id: r.id,
-          participantId:r.participantId,
+          participantId: r.participantId,
           position: r.position,
         }
-      }),event.type,settings,eventId)
+      }), event.type, settings, eventId)
       const isSameEntry = (
-          a: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">,
-          b: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">
+        a: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">,
+        b: Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">
       ) => a.id === b.id
 
-// Separate existing and new
+      // Separate existing and new
       const alreadyInDB = submission.filter(sub =>
-          results.some(existing => isSameEntry(sub, existing))
+        results.some(existing => isSameEntry(sub, existing))
       );
 
       const newEntries = submission.filter(sub =>
-          !results.some(existing => isSameEntry(sub, existing))
+        !results.some(existing => isSameEntry(sub, existing))
       );
 
-      if(alreadyInDB.length>0){
+      if (alreadyInDB.length > 0) {
         Promise.all(alreadyInDB.map(async (result) => {
-          await updateResult(result.id,result)
-        })).catch(e=>{
+          await updateResult(result.id, result)
+        })).catch(e => {
           console.log(e);
           throw e;
         })
       }
-      if(newEntries.length>0){
+      if (newEntries.length > 0) {
         Promise.all(newEntries.map(async (result) => {
           await createResult(result)
-        })).catch(e=>{
+        })).catch(e => {
           console.log(e);
           throw e;
         })
       }
-      const recordStatus = checkIfRecordHasBeenBroken(data.bestScore,[...alreadyInDB,...newEntries],"distance",event,participants,houses)
-      const recordData = recordStatus.isBroken?
-          {record:recordStatus.newRecord,
-           recordHolder:recordStatus.recordHolder,
-           isRecordBroken:recordStatus.isBroken
-          }:{};
-      await updateEvent(event.id,{
-        bestScore:data.bestScore,
-        status:[...alreadyInDB,...newEntries].length>0?"complete":"pending",
+      const recordStatus = checkIfRecordHasBeenBroken(data.bestScore, [...alreadyInDB, ...newEntries], event.measurementNature, event, participants, houses)
+      const recordData = recordStatus.isBroken ?
+        {
+          record: recordStatus.newRecord,
+          recordHolder: recordStatus.recordHolder,
+          isRecordBroken: recordStatus.isBroken
+        } : {};
+      await updateEvent(event.id, {
+        bestScore: data.bestScore,
+        status: [...alreadyInDB, ...newEntries].length > 0 ? "complete" : "pending",
         ...recordData
       })
       Toast({
@@ -177,7 +185,7 @@ export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,ca
   useEffect(() => {
     if (open && results.length > 0) {
       form.reset({
-        bestScore: event.bestScore??"",
+        bestScore: event.bestScore ?? "",
         results: results.map(result => ({
           id: result.id,
           participantId: result.participantId,
@@ -187,11 +195,11 @@ export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,ca
     }
   }, [open, results]);
   return (
-    <Dialog open={open} onOpenChange={(v)=>{
-      if(!canOpen) {
+    <Dialog open={open} onOpenChange={(v) => {
+      if (!canOpen) {
         setOpen(false)
       }
-      if(!v) {
+      if (!v) {
         form.reset()
       }
       setOpen(v)
@@ -199,16 +207,15 @@ export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,ca
       <DialogTrigger asChild>
         {
           toggleButton || <Button variant="outline" size="icon" className={`w-6 h-6`} >
-              <Grid2X2Check className="h-4 w-4"/>
-            </Button>
+            <Grid2X2Check className="h-4 w-4" />
+          </Button>
         }
 
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] px-0">
         <ScrollArea className={"max-h-[90dvh] px-3"}>
           <DialogHeader>
-            <h2 className={"font-bold"}>Event #{event.eventNumber}</h2>
-            <DialogTitle>Enter Results for {eventTitle}</DialogTitle>
+            <DialogTitle>Enter Results for Event number{event.eventNumber} {"-->"} {eventTitle}</DialogTitle>
             <DialogDescription>
               Add the results for this event. Click the plus button to add more entries.
             </DialogDescription>
@@ -218,134 +225,187 @@ export default function PsEventResultsDialog({deleteResult,onDone,updateEvent,ca
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-4">
                 <div className="flex flex-col">
-                  <h3 className="text-lg font-medium underline">Results</h3>
+                  <div className="flex items-center justify-between my-4 gap-3">
+                    <h3 className="text-lg font-medium underline">Results</h3>
+                    <div className="flex items-center gap-2">
+                      <span>Allow out of bounds age groups</span>
+                      <Checkbox checked={outOfBoundsAllowance} onChange={(e) => setOutOfBoundsAllowance(e.target.checked)} />
+                    </div>
+                  </div>
                   <FormField
-                      control={form.control}
-                      name={`bestScore`}
-                      render={({ field }) => (
-                          <FormItem className={"flex flex-1 items-center gap-2"}>
-                            <FormLabel className={"flex flex-col text-[14px] w-full"}>Best Score
-                              <span className={"text-xs text-muted-foreground"}>NB: use only numbers</span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                  type="number"
-
-                                  {...field}
-                                  placeholder={"e.g, 1.56"}
-                                  className={
-                                    cn("w-full")
-                                  }
+                    control={form.control}
+                    name={`bestScore`}
+                    render={({ field }) => {
+                      let inputType = "text";
+                      let step = undefined;
+                      let placeholder = "Enter value";
+                      let label = "Best Score";
+                      let isTime = false;
+                      let timeFormat = "mm:ss.SSS";
+                      if (event.measurementNature === "height" || event.measurementNature === "length") {
+                        inputType = "number";
+                        step = "0.01";
+                        placeholder = "e.g, 5.25";
+                        label = "Best Distance/height";
+                      } else if (
+                        event.measurementNature === "time"
+                      ) {
+                        isTime = true;
+                        if (event.measurementMetric === "hours") {
+                          timeFormat = "HH:MM:ss";
+                          placeholder = "e.g, 01:23:45 (hh:mm:ss)";
+                        } else if (event.measurementMetric === "minutes") {
+                          timeFormat = "MM:ss";
+                          placeholder = "e.g, 12:34 (MM:ss)";
+                        } else if (event.measurementMetric === "seconds") {
+                          timeFormat = "ss.SS";
+                          placeholder = "e.g, 59.99 (ss.SSS)";
+                        } else {
+                          timeFormat = "DD:HH:MM:ss.SSS";
+                          placeholder = "e.g, 03:09.08 (MM:ss.SSS)";
+                        }
+                        label = "Best Time";
+                      } else if (event.measurementNature === "score") {
+                        inputType = "number";
+                        step = "1";
+                        placeholder = "e.g, 100 (points)";
+                        label = "Best Score";
+                      }
+                      return (
+                        <FormItem className={"flex flex-1 items-center gap-2"}>
+                          <FormLabel className={"flex flex-col text-[14px] w-full"}>{label}
+                            <span className={"text-xs text-muted-foreground"}>{isTime ? `Format: ${timeFormat}` : "NB: use only numbers"}</span>
+                          </FormLabel>
+                          <FormControl>
+                            {isTime ? (
+                              <TimeOtpInput
+                                onChange={field.onChange}
+                                value={field.value}
+                                format={event.measurementMetric==="days"?"DD:HH:mm:ss.SS":event.measurementMetric==="hours"?"HH:mm:ss.SS":event.measurementMetric==="minutes"?"mm:ss.SS":"ss.SS"}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                      )}
+                            ) : (
+                              <Input
+                                type={inputType}
+                                step={step}
+                                {...field}
+                                placeholder={placeholder}
+                                className={cn("w-full")}
+                              />
+                            )}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                 </div>
 
                 {fields.map((field, index) => (
-                    <div key={field.id} className="rounded-lg border p-2 space-y-4">
-                      <div className="flex items-center gap-4 w-full">
-                        {index > 0 && (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => remove(index)}
-                                className="h-8 w-8 p-0"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Remove</span>
-                            </Button>
-                        )}
-                        <span className={"text-red-600 text-xs tracking-wider"}>{form.watch(`results.${index}.position`) === 0
-                            ?"Disqualified":<Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => disqualifyParticipant(index)}
-                                className="flex items-center gap-1 w-6 h-6 text-xs"
-                            >
-                              <UserRoundX className="h-3 w-3"/>
-                            </Button>}</span>
-                      </div>
-                      {/*form fields*/}
-                      <div className="flex items-center gap-2 w-full">
-                        <FormField
-                            control={form.control}
-                            name={`results.${index}.position`}
-                            render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className={"grid text-[14px]"}>Position
-                                    <span className={"text-xs text-muted-foreground"}>NB: 0 means DQ</span>
-                                  </FormLabel>
-                                  <FormControl>
-                                  <Input
-                                        type="number"
-                                        min="0"
-                                        {...field}
-                                        className={
-                                          cn("max-w-[60px]",form.watch(`results.${index}.position`) === 0 ? "bg-red-50 dark:bg-red-950/20" : "")
-                                        }
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name={`results.${index}.participantId`}
-                            render={({ field }) => (
-                                <FormItem className={"flex-1"}>
-                                  <FormLabel className={"grid text-[14px]"}>{event.type === "individual" ? "Participant" : "House"}
-                                    <span className={"text-xs text-muted-foreground"}>Participant for Position</span>
-                                  </FormLabel>
-                                  <SeachableSelectWithCreationLogic canCreate={false} options={event?.type === "individual"
-                                      ? participants
-                                          .filter((p) => {
-                                            const ageGroup = settings.ageGroups[event.ageGroup];
-                                            console.log("ageGroup", ageGroup);
-                                            const age = getAge(p.dob);
-
-                                            if (typeof ageGroup === "number") {
-                                              return p.gender === event?.gender && age >= ageGroup;
-                                            }
-
-                                            if (Array.isArray(ageGroup)) {
-                                              return p.gender === event?.gender && ageGroup.includes(age);
-                                            }
-
-                                            return false;
-                                          })
-                                          .map((participant) => ({
-                                            label: `${participant?.firstName??""} ${participant?.lastName??""}`,
-                                            value: participant?.id??"",
-                                          }))
-                                      : houses.map((house) => (
-                                          {
-                                            label:`${house.name}`,
-                                            value:house.id
-                                          }
-                                      ))} onChange={field.onChange} value={field.value} placeholder={`Select ${event.type === "individual" ? "participant" : "house"}`}/>
-                                  <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                      </div>
+                  <div key={field.id} className="rounded-lg border p-2 space-y-4">
+                    <div className="flex items-center gap-4 w-full">
+                      {index > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => remove(index)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Remove</span>
+                        </Button>
+                      )}
+                      <span className={"text-red-600 text-xs tracking-wider"}>{form.watch(`results.${index}.position`) === 0
+                        ? "Disqualified" : <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => disqualifyParticipant(index)}
+                          className="flex items-center gap-1 w-6 h-6 text-xs"
+                        >
+                          <UserRoundX className="h-3 w-3" />
+                        </Button>}</span>
                     </div>
+                    {/*form fields*/}
+                    <div className="flex items-center gap-2 w-full">
+                      <FormField
+                        control={form.control}
+                        name={`results.${index}.position`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={"grid text-[14px]"}>Position
+                              <span className={"text-xs text-muted-foreground"}>NB: 0 means DQ</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                {...field}
+                                className={
+                                  cn("max-w-[60px]", form.watch(`results.${index}.position`) === 0 ? "bg-red-50 dark:bg-red-950/20" : "")
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`results.${index}.participantId`}
+                        render={({ field }) => (
+                          <FormItem className={"flex-1"}>
+                            <FormLabel className={"grid text-[14px]"}>{event.type === "individual" ? "Participant" : "House"}
+                              <span className={"text-xs text-muted-foreground"}>Participant for Position</span>
+                            </FormLabel>
+                            <SeachableSelectWithCreationLogic canCreate={false} options={event?.type === "individual"
+                              ? participants
+                                .filter((p) => {
+                                  const ageGroup = settings.ageGroups[event.ageGroup];
+                                  const age = getAge(p.dob);
+                                  const genderAllowed = p.gender === event?.gender
+
+                                  if (!genderAllowed && event?.gender !== "mixed") {
+                                    return false;
+                                  }
+
+                                  if (typeof ageGroup === "number") {
+                                    return outOfBoundsAllowance ? age <= ageGroup : age >= ageGroup;
+                                  }
+
+                                  if (Array.isArray(ageGroup)) {
+                                    return outOfBoundsAllowance ? ageGroup[1] <= age : ageGroup.includes(age);
+                                  }
+
+                                  return false;
+                                })
+                                .map((participant) => ({
+                                  label: `${participant?.firstName ?? ""} ${participant?.lastName ?? ""}`,
+                                  value: participant?.id ?? "",
+                                }))
+                              : houses.map((house) => (
+                                {
+                                  label: `${house.name}`,
+                                  value: house.id
+                                }
+                              ))} onChange={field.onChange} value={field.value} placeholder={`Select ${event.type === "individual" ? "participant" : "house"}`} />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                 ))}
 
               </div>
 
               <DialogFooter>
                 <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addResult}
-                    className="flex items-center gap-1"
+                  type="button"
+                  variant="outline"
+                  onClick={addResult}
+                  className="flex items-center gap-1"
                 >
                   <PlusCircle className="h-4 w-4" />
                   Add Result

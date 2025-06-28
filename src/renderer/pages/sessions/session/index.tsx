@@ -6,14 +6,14 @@ import {
 } from "@/renderer/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useSessionHelper } from "./components/useSessionHelper";
 import Events from "~/pages/sessions/session/components/Events";
 import Participants from "~/pages/sessions/session/components/Participants";
 import Houses from "~/pages/sessions/session/components/Houses";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/renderer/components/ui/dialog";
 import Print from "@/renderer/components/print";
-import { Printer } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { useSettings } from "@/renderer/hooks/use_settings";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
 
@@ -23,6 +23,7 @@ export default function SessionViewPage() {
     useSessionHelper(id);
   const [activeTab, setActiveTab] = useState("events");
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (id) {
@@ -42,6 +43,11 @@ export default function SessionViewPage() {
       {/* header */}
       <div className='flex items-center justify-between pb-3 border-b border-gray-200'>
         <div className="flex items-center gap-5">
+          <Button onClick={()=>{
+            navigate("/sessions")
+          }} size="icon">
+            <ArrowLeft/>
+          </Button>
           <h1 className='text-xl font-bold'>Session {session?.title ?? ""}</h1>
           <PrintDialog
             isOpen={printDialogOpen}

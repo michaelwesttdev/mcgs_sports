@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,9 @@ import SeachableSelectWithCreationLogic from "./seachableSelectWithCreationLogic
 import { z } from "zod";
 import { useDiscipline } from "../hooks/use_discipline";
 import { useSession } from "../hooks/use_session";
+import {DatePicker,TimePicker} from 'antd';
+import dayjs from 'dayjs';
+
 
 const defaultValues: NewSessionSchemaType = {
   title: "",
@@ -34,10 +37,16 @@ const defaultValues: NewSessionSchemaType = {
   disciplineId: "",
 };
 
-export default function NewSessionDialogForm() {
+type Props={
+  type?:"new"|"edit",
+  trigger?:React.ReactNode,
+  defValues?:NewSessionSchemaType &{id:string}
+}
+
+export default function NewSessionDialogForm({type="new",defValues,trigger}:Props) {
   const [open, setOpen] = React.useState(false);
   const { disciplines } = useDiscipline();
-  const { createSession } = useSession();
+  const { createSession,updateSession } = useSession();
   const form = useForm({
     defaultValues,
     resolver: zodResolver(NewSessionSchema),
@@ -49,6 +58,9 @@ export default function NewSessionDialogForm() {
         throw new Error(validated.error.message);
       }
       const d = validated.data;
+      if (type === "edit" && defValues) {
+        return handleUpdate(d);
+      }
       const res = await createSession({
         title: d.title,
         date: d.date,
@@ -65,10 +77,34 @@ export default function NewSessionDialogForm() {
       Toast({ message: error.message, variation: "error" });
     }
   }
+  async function handleUpdate(data:NewSessionSchemaType) {
+    try {
+      const res = await updateSession(defValues?.id,{...data});
+      if (res) {
+        Toast({ message: "Session updated successfully", variation: "success" });
+        setOpen(false);
+        form.reset();
+      }
+    } catch (error) {
+      console.log(error);
+      Toast({ message: error.message, variation: "error" });
+    }
+  }
+  useEffect(()=>{
+    if (type === "edit" && defValues) {
+      form.reset(defValues);
+    } else {
+      form.reset(defaultValues);
+    }
+  },[defValues])
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={(v)=>setOpen(v)}>
       <DialogTrigger asChild>
-        <Button className='shadow-md shadow-white/50'>New Session</Button>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button className='shadow-md shadow-white/50'>New Session</Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -99,7 +135,9 @@ export default function NewSessionDialogForm() {
                     Date session will take place
                   </FormDescription>
                   <FormControl>
-                    <Input type='date' {...field} placeholder='Date' />
+                    <DatePicker value={field.value?dayjs(field.value):null} onChange={(_,date)=>{
+                      field.onChange(date.toString())
+                    }}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,7 +153,10 @@ export default function NewSessionDialogForm() {
                     Time session will take place if known
                   </FormDescription>
                   <FormControl>
-                    <Input type='time' {...field} placeholder='Time' />
+                    <TimePicker format={"HH:mm"} value={field.value?dayjs(field.value,"HH:mm"):null} onChange={(_,time)=>{
+                      console.log(_,time)
+                      field.onChange(time)
+                    }}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -156,7 +197,7 @@ export default function NewSessionDialogForm() {
                 </FormItem>
               )}
             />
-            <Button>Create</Button>
+            <Button>{type==="new"?"Create":"Update"}</Button>
           </form>
         </Form>
       </DialogContent>

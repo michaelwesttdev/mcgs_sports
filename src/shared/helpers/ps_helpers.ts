@@ -1,6 +1,10 @@
 import {Settings} from "@/shared/settings";
 import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import { getAge } from "./dates";
+import { metrics } from "@/shared/settings";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(duration);
 
 export function getPointsForParticipant(position:number,eventType:"team"|"individual",settings:Settings,isDisqualified:boolean){
     const pointAllocationInSettings = settings.points[eventType];
@@ -83,6 +87,47 @@ export function assignPointsPreservingOrder(
     });
 }
 
+function parseTimeString(time: string, unit: string): number {
+    if (!time) return NaN;
+    // Split milliseconds if present
+    let ms = 0;
+    let main = time;
+    if (main.includes(".")) {
+        const parts = main.split(".");
+        main = parts[0];
+        ms = parseInt(parts[1].padEnd(2, "0")) || 0;
+    }
+    const segments = main.split(":").map(Number);
+    // Always fill from the right
+    let totalSeconds = 0;
+    if (unit === "hours" || unit === "h" || unit === "HH:mm:ss.SS") {
+        // [hours, minutes, seconds]
+        while (segments.length < 3) segments.unshift(0);
+        const [h, m, s] = segments;
+        totalSeconds = h * 3600 + m * 60 + s + ms / 100;
+    } else if (unit === "minutes" || unit === "m" || unit === "mm:ss.SS") {
+        // [minutes, seconds]
+        while (segments.length < 2) segments.unshift(0);
+        const [m, s] = segments;
+        totalSeconds = m * 60 + s + ms / 100;
+    } else if (unit === "seconds" || unit === "s" || unit === "ss.SS") {
+        // [seconds]
+        const s = segments[segments.length - 1] || 0;
+        totalSeconds = s + ms / 100;
+    } else if (unit === "DD:HH:mm:ss.SS") {
+        // [days, hours, minutes, seconds]
+        while (segments.length < 4) segments.unshift(0);
+        const [d, h, m, s] = segments;
+        totalSeconds = d * 86400 + h * 3600 + m * 60 + s + ms / 100;
+    } else {
+        // fallback: treat as mm:ss.SS
+        while (segments.length < 2) segments.unshift(0);
+        const [m, s] = segments;
+        totalSeconds = m * 60 + s + ms / 100;
+    }
+    return totalSeconds;
+}
+
 export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[],eventNature:PSEvent["measurementNature"],event:PSEvent,participants:PSParticipant[],houses:PSHouse[]){
     const hasRecord = !!(event?.record && event?.recordHolder);
     const winner = results.find(r=>r.position === 1);
@@ -98,7 +143,22 @@ export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEvent
             recordHolder: winnerName
         };
     }
-    const isBroken = event.measurementNature === "time"? parseFloat(event.record)>parseFloat(bestScore):parseFloat(event.record)<parseFloat(bestScore)
+    const timeMetricKeys = ["minutes", "seconds", "hours", "days", "milliseconds"] as const;
+    const isTimeMetric = timeMetricKeys.includes(event.measurementMetric as any);
+    let recordValue: number, bestScoreValue: number;
+    if (isTimeMetric) {
+        // Use the measurementMetric as the unit for parsing
+        recordValue = parseTimeString(event.record, event.measurementMetric);
+        bestScoreValue = parseTimeString(bestScore, event.measurementMetric);
+    } else {
+        recordValue = parseFloat(event.record);
+        bestScoreValue = parseFloat(bestScore);
+    }
+    // Determine if higher or lower is better based on measurementNature
+    const isLowerBetter = event.measurementNature === "time";
+    const isBroken = isLowerBetter
+        ? bestScoreValue < recordValue
+        : bestScoreValue > recordValue;
     if(isBroken){
         return {
             isBroken: true,

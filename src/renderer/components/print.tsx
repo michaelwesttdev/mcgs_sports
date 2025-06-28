@@ -455,21 +455,21 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Settin
   };
 }
 function calculateLudorumTables(results: {
-    event: eventDataToPrint;
-    pos: number;
-    participantId: string;
-    name: string;
-    house: string;
-    age_group: string;
-    sex: string;
-    hp: number;
-    vlp: number;
-    additionalInfo: string;
+  event: eventDataToPrint;
+  pos: number;
+  participantId: string;
+  name: string;
+  house: string;
+  age_group: string;
+  sex: string;
+  hp: number;
+  vlp: number;
+  additionalInfo: string;
 }[]) {
   const scores = new Map<string, { name: string; age_group: string; gender: string; total: number }>();
 
   for (const res of results) {
-    const key = `${res.participantId}`;
+    const key = res.participantId;
     if (!scores.has(key)) {
       scores.set(key, {
         name: res.name,
@@ -483,26 +483,51 @@ function calculateLudorumTables(results: {
 
   type Score = ReturnType<typeof scores.values> extends Iterable<infer T> ? T : never;
 
-const byGroup = Array.from(scores.values()).reduce((acc, curr) => {
-  const key = `${curr.age_group}-${curr.gender}`;
-  if (!acc[key]) acc[key] = [];
-  acc[key].push(curr);
-  return acc;
-}, {} as Record<string, Score[]>);
+  const byGroup = Array.from(scores.values()).reduce((acc, curr) => {
+    const key = `${curr.age_group}-${curr.gender}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(curr);
+    return acc;
+  }, {} as Record<string, Score[]>);
 
-  const male: LudorumKind[] = [];
-  const female: LudorumKind[] = [];
+  const male: { age_group: string; participants: Score[] }[] = [];
+  const female: { age_group: string; participants: Score[] }[] = [];
 
-  for (const [group, list] of Object.entries(byGroup)) {
+  for (const [groupKey, list] of Object.entries(byGroup)) {
     const sorted = list.sort((a, b) => b.total - a.total);
-    if (sorted[0]) {
-      if (sorted[0].gender === "male") male.push(sorted[0]);
-      if (sorted[0].gender === "female") female.push(sorted[0]);
+
+    const ranked: Score[] = [];
+    let i = 0;
+    let currentRank = 1;
+
+    while (i < sorted.length && currentRank <= 3) {
+      const tieGroup = [sorted[i]];
+      let j = i + 1;
+
+      while (j < sorted.length && sorted[j].total === sorted[i].total) {
+        tieGroup.push(sorted[j]);
+        j++;
+      }
+
+      if (currentRank <= 3) {
+        ranked.push(...tieGroup);
+      }
+
+      currentRank += tieGroup.length;
+      i = j;
     }
+
+    const [age_group, gender] = groupKey.split("-");
+
+    const entry = { age_group, participants: ranked };
+
+    if (gender === "male") male.push(entry);
+    else if (gender === "female") female.push(entry);
   }
 
   return { male, female };
 }
+
 async function renderSessionSummary(sessionId: string, eventCount: number,completedEvents: number = 0,housePointsSummary?: Map<string,{name:string,points:number}>) {
   const session =await window.api.mainReadSession(sessionId);
   let name = "Unknown Session";
@@ -534,7 +559,7 @@ async function renderSessionSummary(sessionId: string, eventCount: number,comple
     <hr />
   `;
 }
-function renderLudorumTable(title: string, data: LudorumKind[]) {
+/* function renderLudorumTable(title: string, data: LudorumKind[]) {
   return `
     <h2>${title}</h2>
     <table>
@@ -550,8 +575,79 @@ function renderLudorumTable(title: string, data: LudorumKind[]) {
       </tbody>
     </table>
   `;
+} */
+
+function renderLudorumTable(
+  title: string,
+  data: {
+    age_group: string;
+    participants: { name: string; age_group: string; gender: string; total: number }[];
+  }[]
+) {
+  return `
+    <h2>${title}</h2>
+    ${data.map(group => {
+      const sorted = [...group.participants].sort((a, b) => b.total - a.total);
+
+      const rows = [];
+      let position = 1;
+      let i = 0;
+
+      while (i < sorted.length) {
+        const tieGroup = [sorted[i]];
+        let j = i + 1;
+
+        // Collect all participants with the same score
+        while (j < sorted.length && sorted[j].total === sorted[i].total) {
+          tieGroup.push(sorted[j]);
+          j++;
+        }
+
+        // Render all participants in the tie group with the same position
+        for (const p of tieGroup) {
+          rows.push(`
+            <tr>
+              <td>${ordinal(position)}</td>
+              <td>${p.name}</td>
+              <td>${p.total}</td>
+            </tr>
+          `);
+        }
+
+        // Compact (dense) ranking: increment by 1 regardless of tie size
+        position += 1;
+        i = j;
+      }
+
+      return `
+        <h3>Age Group: ${group.age_group}</h3>
+        <table border="1" cellspacing="0" cellpadding="5">
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Name</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.join("")}
+          </tbody>
+        </table>
+      `;
+    }).join("")}
+  `;
 }
-async function renderEventBlock(data: eventDataToPrint, maxPositions: number, pageBreak: boolean) {
+
+// Helper to convert 1 -> 1st, 2 -> 2nd, etc.
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"],
+        v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+
+
+  async function renderEventBlock(data: eventDataToPrint, maxPositions: number, pageBreak: boolean) {
   const dataResults = (await Promise.all(data.results)).slice(0, maxPositions);
   const firstPos = dataResults.find(r => r.pos === 1);
 

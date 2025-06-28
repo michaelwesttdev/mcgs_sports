@@ -32,6 +32,9 @@ async function handleSessionDbClose(id: string) {
 async function getPrinterList(){
   return await ipcRenderer.invoke("printer:list")
 }
+async function exportCSV(args: { data: string,filename:string }) {
+  return await ipcRenderer.invoke("export:csv", args);
+}
 
 const api = {
   getVersion,
@@ -45,6 +48,7 @@ const api = {
   handleSessionDbClose,
   getPrinterList,
   printHTML: (args:Electron.WebContentsPrintOptions&{html:string}) => ipcRenderer.invoke('printHTML', args),
+  exportCSV,
   ...apiExtention,
 };
 export default api;

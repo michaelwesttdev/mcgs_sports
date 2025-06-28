@@ -1,3 +1,4 @@
+import '@ant-design/v5-patch-for-react-19';
 import "~/styles/globals.css";
 import { createRoot } from "react-dom/client";
 import React from "react";

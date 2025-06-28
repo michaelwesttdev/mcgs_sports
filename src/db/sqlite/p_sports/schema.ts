@@ -52,7 +52,7 @@ const Event = sqliteTable("event", {
   title: text("title", { length: 255 }).notNull(),
   description: text("description"),
   type: text("type", { enum: ["team", "individual"] }).notNull(),
-  measurementNature: text("measurement_nature",{enum:["time", "distance", "score", "points"]}),
+  measurementNature: text("measurement_nature",{enum:["time", "height","length", "score"]}),
   measurementMetric: text("measurement_metric"),
   ageGroup: text("age_group").notNull(),
   gender: text("gender", { enum: ["male", "female", "mixed"] }).notNull(),

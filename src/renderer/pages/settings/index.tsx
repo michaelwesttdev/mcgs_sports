@@ -19,7 +19,6 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { Toast } from "~/components/Toast";
 import { Settings } from "@/shared/settings";
 import { useSettings } from "~/hooks/use_settings";
-import MetricsTab from "~/pages/settings/components/metrics";
 
 // Default settings
 
@@ -327,7 +326,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         {/* Metrics Tab */}
-        <MetricsTab
+        {/* <MetricsTab
             saveSettings={saveSettings}
           newMetricName={newMetricName}
           setSettings={setSettings}
@@ -335,7 +334,7 @@ export default function SettingsPage() {
           newMetricRegex={newMetricRegex}
           setNewMetricName={setNewMetricName}
           setNewMetricRegex={setNewMetricRegex}
-        />
+        /> */}
         {/* Points Tab */}
         <TabsContent value="points">
           <Card>

@@ -37,4 +37,4 @@ export const IpcChannels = [
   ...PerfomanceSportsChannels,
 ] as const;
 
-export const natures = ["time", "distance", "score", "points"] as const;
+export const natures = ["time", "height", "score", "length"] as const;

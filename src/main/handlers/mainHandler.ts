@@ -4,14 +4,16 @@ import { BaseRepository } from "@/db/repositories/base.repository";
 import { Database, initDb } from "@/db/sqlite";
 import { RepositoryError } from "@/errors/repository.error";
 import {
+  DialogProperties,
   IpcChannel,
   PerfomanceSportsChannel,
 } from "@/shared/types/electron.main";
-import { BrowserWindow, ipcMain } from "electron";
+import { BrowserWindow, dialog, ipcMain } from "electron";
 import * as PsSchema from "@/db/sqlite/p_sports/schema";
 import { getSessionDbPath } from "@/shared/helpers/urls";
 import { SettingsHandler } from "@/main/handlers/settingsHandler";
 import { settings } from "@/shared/settings";
+import fs from 'fs/promises'
 
 export class MainHandler {
   private p_sessionsContexts: Map<
@@ -188,6 +190,36 @@ export class MainHandler {
         });
       });
     });
+    ipcMain.handle("export:csv", async (_, args: { data: string,filename:string }) => {
+      const {data,filename} = args;
+      try {
+        const folderPath = await this.getFolderPathUrl("export");
+        if(!folderPath){
+          throw new Error("No folder specified.")
+        }
+        await fs.writeFile(`${folderPath}/${filename}`,data);
+        return {success:true,error:null}
+      } catch (error) {
+        return this.handleError(error);
+      }
+    })
+  }
+
+  private async getFolderPathUrl(operation:"export"|"import"){
+    try {
+      const properties:DialogProperties = operation==="export"?["openDirectory","createDirectory"]:["openDirectory"];
+      const result = await dialog.showOpenDialog({
+        properties,
+        title:`Select a folder to ${operation} to.`
+      });
+      if(!result.canceled){
+        return result.filePaths[0]
+      }
+      return null;
+    } catch (error) {
+      console.error(error)
+      return null;
+    }
   }
 
 

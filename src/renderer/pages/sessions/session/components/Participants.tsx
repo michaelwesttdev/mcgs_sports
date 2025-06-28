@@ -6,6 +6,9 @@ import { useState } from "react";
 import { PSHouse, PSParticipant } from "@/db/sqlite/p_sports/schema";
 import ParticipantDialogForm from "~/components/participant-dialog-form";
 import ParticipantCard from "~/pages/sessions/session/components/ParticipantCard";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/renderer/components/ui/dropdown-menu";
+import { Button } from "@/renderer/components/ui/button";
+import ParticipantsCsvImport from "./participantsCsvImport";
 
 interface Props {
     houses: PSHouse[];
@@ -44,8 +47,19 @@ export default function Participants({ houses, participants, createHouse, delete
 
                         </div>
                     </div>
-
-                    <ParticipantDialogForm createHouse={createHouse} houses={houses} fetchHouses={fetchHouses} onCreate={createNewParticipant} />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button>Add</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="grid gap-3">
+                            <DropdownMenuItem asChild>
+                                <ParticipantDialogForm createHouse={createHouse} houses={houses} fetchHouses={fetchHouses} onCreate={createNewParticipant} />
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <ParticipantsCsvImport houses={houses} createHouse={createHouse} fetchHouses={fetchHouses} participants={participants} createNewParticipant={createNewParticipant} fetchParticipants={fetchParticipants}/>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </CardHeader>
             <ScrollArea className={"w-full flex-1"}>
