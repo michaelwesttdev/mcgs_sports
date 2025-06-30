@@ -15,6 +15,7 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { useSettings } from "~/hooks/use_settings";
 import { natures } from "@/shared/constants/constants";
 import { metrics } from "@/shared/settings"
+import { useSessionSettings } from "../pages/sessions/session/components/hooks/use_settings"
 
 // Define the schema for the Session Event form
 const SessionEventSchema = z.object({
@@ -51,7 +52,7 @@ export default function SessionEventDialogForm({
     eventNumber?: number
 }>) {
     const [isOpen, setIsOpen] = useState(false)
-    const { settings } = useSettings();
+    const { settings } = useSessionSettings();
 
     const defaultValues: SessionEventSchemaType = {
         eventNumber: 1,

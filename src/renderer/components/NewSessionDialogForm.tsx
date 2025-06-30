@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "./ui/form";
 import { useForm } from "react-hook-form";
-import { NewSessionSchema, NewSessionSchemaType } from "@/shared/schemas";
+import { NewDisciplineSchema, NewSessionSchema, NewSessionSchemaType } from "@/shared/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "./ui/input";
 import { Toast } from "./Toast";
@@ -25,8 +25,11 @@ import SeachableSelectWithCreationLogic from "./seachableSelectWithCreationLogic
 import { z } from "zod";
 import { useDiscipline } from "../hooks/use_discipline";
 import { useSession } from "../hooks/use_session";
-import {DatePicker,TimePicker} from 'antd';
+import { DatePicker, TimePicker } from 'antd';
 import dayjs from 'dayjs';
+import { SearchableSelectWithDialog } from "./creatable_select";
+import { MDiscipline } from "@/db/sqlite/main/schema";
+import { nanoid } from "nanoid";
 
 
 const defaultValues: NewSessionSchemaType = {
@@ -37,16 +40,16 @@ const defaultValues: NewSessionSchemaType = {
   disciplineId: "",
 };
 
-type Props={
-  type?:"new"|"edit",
-  trigger?:React.ReactNode,
-  defValues?:NewSessionSchemaType &{id:string}
+type Props = {
+  type?: "new" | "edit",
+  trigger?: React.ReactNode,
+  defValues?: NewSessionSchemaType & { id: string }
 }
 
-export default function NewSessionDialogForm({type="new",defValues,trigger}:Props) {
+export default function NewSessionDialogForm({ type = "new", defValues, trigger }: Props) {
   const [open, setOpen] = React.useState(false);
-  const { disciplines } = useDiscipline();
-  const { createSession,updateSession } = useSession();
+  const { disciplines,createDiscipline } = useDiscipline();
+  const { createSession, updateSession } = useSession();
   const form = useForm({
     defaultValues,
     resolver: zodResolver(NewSessionSchema),
@@ -77,9 +80,9 @@ export default function NewSessionDialogForm({type="new",defValues,trigger}:Prop
       Toast({ message: error.message, variation: "error" });
     }
   }
-  async function handleUpdate(data:NewSessionSchemaType) {
+  async function handleUpdate(data: NewSessionSchemaType) {
     try {
-      const res = await updateSession(defValues?.id,{...data});
+      const res = await updateSession(defValues?.id, { ...data });
       if (res) {
         Toast({ message: "Session updated successfully", variation: "success" });
         setOpen(false);
@@ -90,15 +93,15 @@ export default function NewSessionDialogForm({type="new",defValues,trigger}:Prop
       Toast({ message: error.message, variation: "error" });
     }
   }
-  useEffect(()=>{
+  useEffect(() => {
     if (type === "edit" && defValues) {
       form.reset(defValues);
     } else {
       form.reset(defaultValues);
     }
-  },[defValues])
+  }, [defValues])
   return (
-    <Dialog open={open} onOpenChange={(v)=>setOpen(v)}>
+    <Dialog open={open} onOpenChange={(v) => setOpen(v)}>
       <DialogTrigger asChild>
         {trigger ? (
           trigger
@@ -135,9 +138,9 @@ export default function NewSessionDialogForm({type="new",defValues,trigger}:Prop
                     Date session will take place
                   </FormDescription>
                   <FormControl>
-                    <DatePicker value={field.value?dayjs(field.value):null} onChange={(_,date)=>{
+                    <DatePicker value={field.value ? dayjs(field.value) : null} onChange={(_, date) => {
                       field.onChange(date.toString())
-                    }}/>
+                    }} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -153,10 +156,10 @@ export default function NewSessionDialogForm({type="new",defValues,trigger}:Prop
                     Time session will take place if known
                   </FormDescription>
                   <FormControl>
-                    <TimePicker format={"HH:mm"} value={field.value?dayjs(field.value,"HH:mm"):null} onChange={(_,time)=>{
-                      console.log(_,time)
+                    <TimePicker format={"HH:mm"} value={field.value ? dayjs(field.value, "HH:mm") : null} onChange={(_, time) => {
+                      console.log(_, time)
                       field.onChange(time)
-                    }}/>
+                    }} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -182,22 +185,48 @@ export default function NewSessionDialogForm({type="new",defValues,trigger}:Prop
                 <FormItem>
                   <FormLabel>Discipline</FormLabel>
                   <FormControl>
-                    <SeachableSelectWithCreationLogic
-                      canCreate={true}
-                      onChange={field.onChange}
+                    <SearchableSelectWithDialog
+                    label="Add New Discipline"
+                    dialogTitle="Create New Discipline"
                       value={field.value}
-                      placeholder='Select Discipline'
+                      onChange={field.onChange}
                       options={disciplines.map((d) => ({
-                        label: d.name,
-                        value: d.id,
+                        name: d.name,
+                        id: d.id,
                       }))}
+                      schema={NewDisciplineSchema}
+                      onAddOption={async (data) => {
+                        try {
+                          const newDiscipline: Omit<MDiscipline, "createdAt" | "updatedAt" | "deletedAt"> = {
+                            id: nanoid(),
+                            name: data.name,
+                            type:data.type
+                          }
+                          await createDiscipline(newDiscipline);
+                          field.onChange(newDiscipline.id);
+                        } catch (e) {
+                          console.log(e);
+                          Toast({ message: "Something went wrong", variation: "error" })
+                        }
+                      }}
+                      override={{
+                        "type":{
+                          type:"select",
+                          options:["performance","team"].map(item=>{
+                            return {
+                              value:item,
+                              label:item
+                            }
+                          })
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button>{type==="new"?"Create":"Update"}</Button>
+            <Button>{type === "new" ? "Create" : "Update"}</Button>
           </form>
         </Form>
       </DialogContent>

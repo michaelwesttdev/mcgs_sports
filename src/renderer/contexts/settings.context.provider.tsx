@@ -1,11 +1,11 @@
 import {createContext, useEffect, useState} from "react";
 import {SettingsService} from "@/services/settings.service";
-import {Settings,settings as defaultSettings} from "@/shared/settings";
+import {Settings,defaultSettings} from "@/shared/settings";
 
 interface SettingsContextType{
     settings:Settings,
     fetchSettings:() => Promise<any>
-    updateSettings:(data:Partial<Settings>) => Promise<any>
+    updateSettings:(data:Partial<Settings>) => Promise<any> 
 }
 export const SettingsContext = createContext<SettingsContextType>({
     settings:{...defaultSettings},

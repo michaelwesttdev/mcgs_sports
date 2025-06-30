@@ -1,15 +1,16 @@
 import { ipcRenderer } from "electron";
 import { api as apiExtention } from "./handlers/rendererHandler";
-import {Settings} from "@/shared/settings";
+import {SessionSettings, Settings} from "@/shared/settings";
+import { FetchSessionSettingsArgs, UpdateSessionSettingsArgs } from "@/shared/types/api";
 
 function getVersion() {
   ipcRenderer.invoke("app:version");
 }
-function getSettings() {
-  return ipcRenderer.invoke("getSettings");
+function getSettings(args:FetchSessionSettingsArgs) {
+  return ipcRenderer.invoke("getSettings",args);
 }
-function updateSettings(data:Partial<Settings>) {
-  return ipcRenderer.invoke("updateSettings", data);
+function updateSettings(args:UpdateSessionSettingsArgs) {
+  return ipcRenderer.invoke("updateSettings", args);
 }
 function handleClose() {
   ipcRenderer.send("close");
@@ -29,6 +30,12 @@ async function handleSessionDbCreate(id: string) {
 async function handleSessionDbClose(id: string) {
   return await ipcRenderer.invoke("session:closeDbContext", id);
 }
+async function handleSessionSettingsContextCreate(defaults:SessionSettings,id: string) {
+  return await ipcRenderer.invoke("settings:createSettingsContext", {defaults,sessionId:id});
+}
+async function handleSessionSettingsContextClose(id: string) {
+  return await ipcRenderer.invoke("settings:closeSettingsContext", id);
+}
 async function getPrinterList(){
   return await ipcRenderer.invoke("printer:list")
 }
@@ -46,6 +53,8 @@ const api = {
   handleRestore,
   handleSessionDbCreate,
   handleSessionDbClose,
+  handleSessionSettingsContextCreate,
+  handleSessionSettingsContextClose,
   getPrinterList,
   printHTML: (args:Electron.WebContentsPrintOptions&{html:string}) => ipcRenderer.invoke('printHTML', args),
   exportCSV,

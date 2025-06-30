@@ -14,9 +14,9 @@ import { useDiscipline } from "~/hooks/use_discipline"
 import { MEvent } from "@/db/sqlite/main/schema";
 import { useEvents } from "~/hooks/use_events";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { useSettings } from "~/hooks/use_settings";
 import { natures } from "@/shared/constants/constants";
 import { metrics } from "@/shared/settings"
+import { useSessionSettings } from "../pages/sessions/session/components/hooks/use_settings"
 
 // Define the schema for the Event form
 const NewEventSchema = z.object({
@@ -42,7 +42,7 @@ export default function NewEventDialogForm({
     const [isOpen, setIsOpen] = useState(false)
     const { createEvent, listAllEvents, updateEvent } = useEvents();
     const { disciplines } = useDiscipline();
-    const { settings } = useSettings();
+    const { settings } = useSessionSettings();
 
     const defaultValues: NewEventSchemaType = {
         title: event?.title || "",

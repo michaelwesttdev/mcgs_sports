@@ -4,9 +4,10 @@ import { usePrinters } from "../hooks/use_printers";
 import { Toast } from "./Toast";
 import { format } from "date-fns";
 import { getAgeGroupName } from "@/shared/helpers/ps_helpers";
-import { Settings } from "@/shared/settings";
+import { SessionSettings, Settings } from "@/shared/settings";
 import { useSettings } from "../hooks/use_settings";
 import { P } from "framer-motion/dist/types.d-CQt5spQA";
+import { useSessionSettings } from "../pages/sessions/session/components/hooks/use_settings";
 
 type PrintOptions = {
   maxPositions?: number;
@@ -27,7 +28,10 @@ type eventDataToPrint = {
   sex: "male" | "female" | "mixed";
   age_group: string;
   event_type: "team" | "individual";
+  metric:string,
+  bestScore:string;
   eventRecord: string;
+  recordSetter:string;
   results: Promise<{
     pos: number;
     participantId: string;
@@ -50,7 +54,7 @@ type LudorumKind={
 }
 export default function Print({ id, type, sessionId,printOptions,onDone }: Props) {
   const { selectedPrinter } = usePrinters();
-  const {settings} = useSettings();
+  const {settings} = useSessionSettings();
   function handlePrint() {
     switch (type) {
       case "event":
@@ -176,8 +180,8 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
     <label for="eventType">Event Type:</label>
     <input type="text" value=${dataToPrint.event_type} id="eventType">
 
-    <label for="eventRecord">Event Record:</label>
-    <input type="text" value=${dataToPrint.eventRecord} id="eventRecord">
+    <label for="bestScore">Best Score:</label>
+    <input type="text" value=${dataToPrint.bestScore} id="eventRecord">
   </div>
 
   ${eventDataHtml}
@@ -276,7 +280,7 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
   return <Button onClick={handlePrint}>Print</Button>;
 }
 
-async function getSessionDataToPrint(sessionId: string,settings:Settings, printOnlyCompletedEvents: boolean = false) {
+async function getSessionDataToPrint(sessionId: string,settings:SessionSettings, printOnlyCompletedEvents: boolean = false) {
   const session = await window.api.mainReadSession(sessionId);
   const events = await window.api.psListEvent(sessionId);
   if (!session.success || !events.success) {
@@ -388,7 +392,7 @@ async function getSessionDataToPrint(sessionId: string,settings:Settings, printO
     housePointsSummary:housePointsMap,
   }
 }
-async function getEventDataToPrint(id: string, sessionId: string,settings:Settings) {
+async function getEventDataToPrint(id: string, sessionId: string,settings:SessionSettings) {
   const { data, success, error } = await window.api.psReadEvent([
     sessionId,
     id,
@@ -405,9 +409,12 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Settin
     eventName: event.title,
     eventNumber: event.eventNumber,
     sex: event.gender,
+    bestScore: event.bestScore,
+    metric:event.measurementMetric,
     age_group: event.ageGroup,
     event_type: event.type,
     eventRecord: event.record,
+    recordSetter: event.recordHolder,
     results: thisEventResults.map(async (res) => {
       const isHuman = res.participantType === "participant";
       let pName = "";
@@ -446,7 +453,7 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Settin
         participantId: res.participantId,
         sex: participantSex,
         hp: res.points,
-        vlp: res.points,
+        vlp: res.vlp,
         additionalInfo: add,
       };
     }),
@@ -559,23 +566,6 @@ async function renderSessionSummary(sessionId: string, eventCount: number,comple
     <hr />
   `;
 }
-/* function renderLudorumTable(title: string, data: LudorumKind[]) {
-  return `
-    <h2>${title}</h2>
-    <table>
-      <thead><tr><th>Name</th><th>Age Group</th><th>Points</th></tr></thead>
-      <tbody>
-        ${data.map(row => `
-          <tr>
-            <td>${row.name}</td>
-            <td>${row.age_group}</td>
-            <td>${row.total}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
-} */
 
 function renderLudorumTable(
   title: string,
@@ -637,8 +627,6 @@ function renderLudorumTable(
     }).join("")}
   `;
 }
-
-// Helper to convert 1 -> 1st, 2 -> 2nd, etc.
 function ordinal(n: number): string {
   const s = ["th", "st", "nd", "rd"],
         v = n % 100;
@@ -678,9 +666,12 @@ function ordinal(n: number): string {
     </table>
 
     ${data.newRecord ? `
-      <p><strong>New Record:</strong> ${data.newRecord}</p>
+      <p><strong>New Record:</strong> ${data.newRecord} ${data.metric}</p>
       <p><strong>Set By:</strong> ${firstPos?.name || "N/A"}</p>
-    ` : ""}
+    ` : `
+    <p><strong>Old Record:</strong> ${data.eventRecord} ${data.metric}</p>
+      <p><strong>Set By:</strong> ${data.recordSetter|| "N/A"}</p>
+    `}
   </div>
   `;
 }

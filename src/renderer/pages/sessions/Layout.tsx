@@ -4,10 +4,10 @@ import HouseContextProvider from "~/contexts/house.context.provider";
 
 type Props = {};
 
-export default function SessionsLayout({}: Props) {
+export default function SessionsLayout({ }: Props) {
   return <>
-    <HouseContextProvider>
-      {<Outlet />}
-    </HouseContextProvider>
+      <HouseContextProvider>
+        {<Outlet />}
+      </HouseContextProvider>
   </>;
 }

@@ -5,22 +5,17 @@ export type PlacePoints = {
 export type PointsSettings = {
   team?: PlacePoints;
   individual?: PlacePoints;
+  vlp?:PlacePoints;
 };
 
-export type Settings = {
+export type Settings = {}
+
+export type SessionSettings = {
   ageGroups: Record<string, number | [number, number]>;
   points: PointsSettings;
 };
 
-export const generalRegex = {
-  time: "^(\\d{1,2}:\\d{2}(\\.\\d{1,2})?|\\d+(\\.\\d{1,2})?)$", // supports "1:23.45" and "23.04"
-  distance: "^\\d+(\\.\\d+)?$",
-  speed: "^\\d+(\\.\\d+)?$",
-  points: "^\\d+(\\.\\d+)?$",
-  score: "^\\d?$",
-};
-
-export const settings: Settings = {
+export const defaultSessionSettings: SessionSettings = {
   ageGroups: {
     U14: [12, 13],
     U16: [14, 15],
@@ -41,8 +36,13 @@ export const settings: Settings = {
       2: 8,
       3: 6,
     },
+    vlp: {
+      1: 10,
+    },
   },
 };
+
+export const defaultSettings:Settings = {}
 
 export const metrics = {
   time: {

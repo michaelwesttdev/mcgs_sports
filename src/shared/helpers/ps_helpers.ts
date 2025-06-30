@@ -1,18 +1,22 @@
-import {Settings} from "@/shared/settings";
+import {SessionSettings} from "@/shared/settings";
 import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import { getAge } from "./dates";
-import { metrics } from "@/shared/settings";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
 
-export function getPointsForParticipant(position:number,eventType:"team"|"individual",settings:Settings,isDisqualified:boolean){
+export function getPointsForParticipant(position:number,eventType:"team"|"individual",settings:SessionSettings,isDisqualified:boolean){
     const pointAllocationInSettings = settings.points[eventType];
-    if(!pointAllocationInSettings || !pointAllocationInSettings[position]){
-        return 0;
-    }
-    if(isDisqualified) return 0;
-    return pointAllocationInSettings[position];
+    const vlpPointsInSettings = settings.points.vlp;
+
+    if(isDisqualified) return {
+        points:0,
+        vlp:0
+    };
+    return {
+        points:pointAllocationInSettings[position]??0,
+        vlp:eventType==="team"?0:vlpPointsInSettings[position]??0
+    };
 }
 export function assignPointsPreservingOrder(
     results: {
@@ -21,20 +25,17 @@ export function assignPointsPreservingOrder(
         position: number; // ignored
     }[],
     eventType: "team" | "individual",
-    settings: Settings,
+    settings: SessionSettings,
     eventId: string
 ): Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[] {
-    // Step 1: Parse valid numeric measurements
     const validResults = results
         .filter(r => r.position>0)
         .map(r => ({ ...r}));
 
-    // Step 2: Sort based on event nature
     const sorted = [...validResults].sort((a, b) =>
         a.position - b.position
     );
 
-    // Step 3: Group by measurement value to detect ties
     const groups: { position: number; participants: typeof sorted }[] = [];
 
     for (const r of sorted) {
@@ -47,7 +48,7 @@ export function assignPointsPreservingOrder(
     }
 
     // Step 4: Assign adjusted positions and average points
-    const participantPoints = new Map<string, { adjustedPosition: number; points: number }>();
+    const participantPoints = new Map<string, { adjustedPosition: number; points: number,vlp:number }>();
     let currentPosition = 1;
 
     for (const group of groups) {
@@ -57,12 +58,13 @@ export function assignPointsPreservingOrder(
             getPointsForParticipant(currentPosition + i, eventType, settings, false)
         );
 
-        const averagePoints = pointRange.reduce((sum, pts) => sum + pts, 0) / groupSize;
+        const averagePoints = pointRange.reduce((sum, pts) => sum + pts.points, 0) / groupSize;
 
         for (const participant of group.participants) {
             participantPoints.set(participant.participantId, {
                 adjustedPosition: currentPosition,
                 points: averagePoints,
+                vlp:getPointsForParticipant(currentPosition, eventType, settings, false).vlp
             });
         }
 
@@ -81,8 +83,11 @@ export function assignPointsPreservingOrder(
             position: isDisqualified ? 0 : mapped.adjustedPosition,
             participantType: eventType === "team" ? "house" : "participant",
             points: isDisqualified
-                ? getPointsForParticipant(0, eventType, settings, true)
+                ? 0
                 : mapped.points,
+            vlp:isDisqualified
+                ? 0
+                : mapped.vlp,
         };
     });
 }
@@ -171,7 +176,7 @@ export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEvent
     };
 }
 
-export function getAgeGroupName(ageGroups:Settings["ageGroups"],dob:string){
+export function getAgeGroupName(ageGroups:SessionSettings["ageGroups"],dob:string){
     if(!dob) return "Unknown";
     const age = getAge(dob);
     
@@ -185,4 +190,4 @@ export function getAgeGroupName(ageGroups:Settings["ageGroups"],dob:string){
     }
     
     return "Unknown"; // If no match found    
-}
+} 

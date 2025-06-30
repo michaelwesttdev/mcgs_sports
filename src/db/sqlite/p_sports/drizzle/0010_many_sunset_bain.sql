@@ -1,0 +1,1 @@
+ALTER TABLE `event_result` ADD `vlp` integer NOT NULL;

@@ -11,16 +11,18 @@ import {
     DialogHeader,
     DialogTitle
 } from "~/components/ui/dialog";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "~/components/ui/form";
-import {Textarea} from "~/components/ui/textarea";
-import {Input} from "~/components/ui/input";
-import {Button} from "~/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
+import { Textarea } from "~/components/ui/textarea";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 export type FieldOverride = {
-    component?: "textarea" | "input"|"color"|"number";
+    component?: "textarea" | "input" | "color" | "number";
     placeholder?: string;
     label?: string;
-    type?: React.HTMLInputTypeAttribute;
+    type?: React.HTMLInputTypeAttribute | "select";
+    options?: { value: string, label: string }[]
 };
 
 interface ZodFormDialogProps {
@@ -34,14 +36,14 @@ interface ZodFormDialogProps {
 }
 
 export const ZodFormDialog = ({
-                                  open,
-                                  onOpenChange,
-                                  title,
-                                  description,
-                                  schema,
-                                  onSubmit,
-                                  overrides = {},
-                              }: ZodFormDialogProps) => {
+    open,
+    onOpenChange,
+    title,
+    description,
+    schema,
+    onSubmit,
+    overrides = {},
+}: ZodFormDialogProps) => {
     const form = useForm({
         resolver: zodResolver(schema),
         defaultValues: {},
@@ -80,19 +82,32 @@ export const ZodFormDialog = ({
                             const placeholder = override.placeholder ?? `Enter ${label}`;
 
                             return (
-                                <FormField control={form.control} render={({field})=>(
+                                <FormField control={form.control} render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>{label}</FormLabel>
                                         <FormControl>
                                             {isTextarea ? (
                                                 <Textarea placeholder={placeholder} {...field} />
-                                            ) : (
-                                                <Input type={override.type?? "text"} placeholder={placeholder} {...field} />
+                                            ) :(override.type && override.type==="select")?(
+                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                    <SelectTrigger className="w-max">
+                                                        <SelectValue placeholder="Select An Option"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {
+                                                            override.options?.map(op=>(
+                                                                <SelectItem value={op.value} className="capitalize">{op.label}</SelectItem>
+                                                            ))
+                                                        }
+                                                    </SelectContent>
+                                                </Select>
+                                            ): (
+                                                <Input type={override.type ?? "text"} placeholder={placeholder} {...field} />
                                             )}
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
-                                )} name={name}/>
+                                )} name={name} />
                             );
                         })}
                         <DialogFooter>
@@ -103,7 +118,7 @@ export const ZodFormDialog = ({
                             >
                                 Cancel
                             </Button>
-                            <Button type="button" onClick={()=>{
+                            <Button type="button" onClick={() => {
                                 form.handleSubmit(handleSubmit)();
                             }} disabled={isSubmitting}>
                                 {isSubmitting ? "Saving..." : "Save"}

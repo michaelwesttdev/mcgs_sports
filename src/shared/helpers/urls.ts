@@ -22,6 +22,15 @@ export function getSettingsFileUrl(): string {
   const settingsPath = path.join(base, `settings.json`);
   return settingsPath;
 }
+export function getSessionSettingsFileUrl(sessionId:string): string {
+  const base = getSessionDbFolderUrl();
+  const sessionSettingsPath = path.join(base,"settings");
+  if(!fs.existsSync(sessionSettingsPath)) {
+    fs.mkdirSync(sessionSettingsPath, { recursive: true });
+  }
+  const settingsPath = path.join(sessionSettingsPath, `${sessionId}_settings.json`);
+  return settingsPath;
+}
 export function getSessionDbPath(id: string) {
   const basePath = getSessionDbFolderUrl();
   const SessionDbPath = path.join(basePath, `${id}.db`);

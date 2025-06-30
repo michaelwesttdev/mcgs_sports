@@ -9,11 +9,11 @@ import { Button } from "~/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
 import { NotebookPen } from "lucide-react"
 import { z } from "zod"
-import {PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
-import {ScrollArea} from "~/components/ui/scroll-area";
-import {SearchableSelectWithDialog} from "~/components/creatable_select";
-import {HouseSchema} from "~/components/house-dialog-form";
-import {nanoid} from "nanoid";
+import { PSHouse, PSParticipant } from "@/db/sqlite/p_sports/schema";
+import { ScrollArea } from "~/components/ui/scroll-area";
+import { SearchableSelectWithDialog } from "~/components/creatable_select";
+import { HouseSchema } from "~/components/house-dialog-form";
+import { nanoid } from "nanoid";
 
 // Define the schema for the Participant form
 const ParticipantSchema = z.object({
@@ -29,28 +29,28 @@ type ParticipantSchemaType = z.infer<typeof ParticipantSchema>
 export default function ParticipantDialogForm({
   participant,
   purpose = "create",
-    onCreate,
-    onUpdate,
-    houses,
-    fetchHouses,
-    createHouse,
+  onCreate,
+  onUpdate,
+  houses,
+  fetchHouses,
+  createHouse,
 }: Readonly<{
   purpose?: "create" | "edit";
   participant?: PSParticipant;
-  onCreate?: (participant: Omit<PSParticipant,"id"|"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
-  onUpdate?: (id:string,participant: Partial<PSParticipant>) => Promise<void>;
-  houses:PSHouse[];
+  onCreate?: (participant: Omit<PSParticipant, "id" | "createdAt" | "updatedAt" | "deletedAt">) => Promise<void>;
+  onUpdate?: (id: string, participant: Partial<PSParticipant>) => Promise<void>;
+  houses: PSHouse[];
   fetchHouses: () => Promise<void>;
-  createHouse: (house: Omit<PSHouse,"id"|"createdAt"|"updatedAt"|"deletedAt">) => Promise<void>;
+  createHouse: (house: Omit<PSHouse, "id" | "createdAt" | "updatedAt" | "deletedAt">) => Promise<void>;
 }>) {
   const [isOpen, setIsOpen] = useState(false)
 
   // Fetch houses when dialog opens
   React.useEffect(() => {
     if (isOpen) {
-      fetchHouses().catch((e:Error)=>{
-          console.log(e)
-          Toast({message:"Something went Wrong",variation:"error"})
+      fetchHouses().catch((e: Error) => {
+        console.log(e)
+        Toast({ message: "Something went Wrong", variation: "error" })
       })
     }
   }, [isOpen])
@@ -72,18 +72,18 @@ export default function ParticipantDialogForm({
     try {
       const validated = ParticipantSchema.safeParse(data);
       if (validated.error) {
-          throw new Error(validated.error.message);
+        throw new Error(validated.error.message);
       }
 
       if (purpose === "edit") {
-        await onUpdate(participant?.id,validated.data)
+        await onUpdate(participant?.id, validated.data)
       } else {
-          await onCreate({
-            firstName: validated.data.firstName,
-            lastName: validated.data.lastName,
-            dob: validated.data.dob,
-            gender: validated.data.gender,
-            houseId: validated.data.houseId,
+        await onCreate({
+          firstName: validated.data.firstName,
+          lastName: validated.data.lastName,
+          dob: validated.data.dob,
+          gender: validated.data.gender,
+          houseId: validated.data.houseId,
         })
       }
 
@@ -119,118 +119,118 @@ export default function ParticipantDialogForm({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
-          <ScrollArea className={"max-h-[90dvh] px-3"}><DialogHeader>
-              <DialogTitle>{purpose === "create" ? "Create New" : "Edit"} Participant</DialogTitle>
-          </DialogHeader>
-              <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                          control={form.control}
-                          name="firstName"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>First Name</FormLabel>
-                                  <FormControl>
-                                      <Input {...field} placeholder="First Name" />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+        <ScrollArea className={"max-h-[90dvh] px-3"}><DialogHeader>
+          <DialogTitle>{purpose === "create" ? "Create New" : "Edit"} Participant</DialogTitle>
+        </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="First Name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                      <FormField
-                          control={form.control}
-                          name="lastName"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Last Name</FormLabel>
-                                  <FormControl>
-                                      <Input {...field} placeholder="Last Name" />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Last Name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                      <FormField
-                          control={form.control}
-                          name="dob"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Date of Birth</FormLabel>
-                                  <FormControl>
-                                      <Input type="date" {...field} placeholder="Date of Birth" />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+              <FormField
+                control={form.control}
+                name="dob"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of Birth</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} placeholder="Date of Birth" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                      <FormField
-                          control={form.control}
-                          name="gender"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Gender</FormLabel>
-                                  <FormControl>
-                                      <Select onValueChange={field.onChange} value={field.value}>
-                                          <SelectTrigger>
-                                              <SelectValue placeholder="Select gender" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                              <SelectItem value="male">Male</SelectItem>
-                                              <SelectItem value="female">Female</SelectItem>
-                                          </SelectContent>
-                                      </Select>
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gender</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                      <FormField
-                          control={form.control}
-                          name="houseId"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>House</FormLabel>
-                                  <FormControl>
-                                      <SearchableSelectWithDialog value={field.value} onChange={field.onChange} options={houses.map((house)=>(
-                                          {
-                                              id:house.id,
-                                              name:house.name
-                                          }
-                                      ))} schema={HouseSchema} onAddOption={async(data)=>{
-                                          try {
-                                              const newHouse:Omit<PSHouse,"createdAt"|"updatedAt"|"deletedAt"> = {
-                                                  id:nanoid(),
-                                                  name:data.name,
-                                                  abbreviation:data.abbreviation,
-                                                  color:data.color,
+              <FormField
+                control={form.control}
+                name="houseId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>House</FormLabel>
+                    <FormControl>
+                      <SearchableSelectWithDialog value={field.value} onChange={field.onChange} options={houses.map((house) => (
+                        {
+                          id: house.id,
+                          name: house.name
+                        }
+                      ))} schema={HouseSchema} onAddOption={async (data) => {
+                        try {
+                          const newHouse: Omit<PSHouse, "createdAt" | "updatedAt" | "deletedAt"> = {
+                            id: nanoid(),
+                            name: data.name,
+                            abbreviation: data.abbreviation,
+                            color: data.color,
 
-                                              }
-                                              await createHouse(newHouse);
-                                              field.onChange(newHouse.id);
-                                          }catch (e) {
-                                              console.log(e);
-                                              Toast({message:"Something went wrong",variation:"error"})
-                                          }
-                                      }} override={{
-                                        "color":{
-                                          type:"color"
-                                        }
-                                      }}/>
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+                          }
+                          await createHouse(newHouse);
+                          field.onChange(newHouse.id);
+                        } catch (e) {
+                          console.log(e);
+                          Toast({ message: "Something went wrong", variation: "error" })
+                        }
+                      }} override={{
+                        "color": {
+                          type: "color"
+                        }
+                      }} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                      <Button type="submit" className="capitalize">
-                          {purpose}
-                      </Button>
-                  </form>
-              </Form></ScrollArea>
+              <Button type="submit" className="capitalize">
+                {purpose}
+              </Button>
+            </form>
+          </Form></ScrollArea>
 
       </DialogContent>
     </Dialog>

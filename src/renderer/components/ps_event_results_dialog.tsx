@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z, ZodSchema } from "zod"
@@ -27,11 +27,12 @@ import {
   assignPointsPreservingOrder,
   checkIfRecordHasBeenBroken
 } from "@/shared/helpers/ps_helpers";
-import { generalRegex, metrics, Settings } from "@/shared/settings";
+import { metrics, SessionSettings } from "@/shared/settings";
 import { Checkbox } from "antd";
 import { TimePicker } from "antd";
 import dayjs from "dayjs";
 import { TimeOtpInput } from "./TimePicker"
+import { useSessionSettings } from "../pages/sessions/session/components/hooks/use_settings"
 
 const EventResultSchema = z.object({
   bestScore: z
@@ -64,8 +65,31 @@ interface EventResultsDialogProps {
 
 export default function PsEventResultsDialog({ deleteResult, onDone, updateEvent, canOpen = true, toggleButton, results, createResult, updateResult, eventId, participants, houses, eventTitle, event }: EventResultsDialogProps) {
   const [open, setOpen] = useState(false)
-  const { settings } = useSettings();
+  const { settings } = useSessionSettings();
   const [outOfBoundsAllowance, setOutOfBoundsAllowance] = useState(false);
+
+  const handleDecimalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  let input = e.currentTarget.value;
+
+  // Allow empty string or dash (for typing negative numbers)
+  if (input === "" || input === "-") {
+    form.setValue("bestScore", input);
+    return;
+  }
+
+  const step = e.currentTarget.step;
+  const isDecimal = step.includes(".");
+
+  if (isDecimal && input.includes(".")) {
+    const [intPart, decimalPart] = input.split(".");
+    const trimmed = `${intPart}.${decimalPart.slice(0, 2)}`;
+    form.setValue("bestScore", trimmed);
+  } else {
+    // Must handle the case where the input has no decimal point
+    form.setValue("bestScore", input);
+  }
+};
+
 
 
   // Initialize form with default values
@@ -288,6 +312,7 @@ export default function PsEventResultsDialog({ deleteResult, onDone, updateEvent
                                 type={inputType}
                                 step={step}
                                 {...field}
+                                onChange={handleDecimalInputChange}
                                 placeholder={placeholder}
                                 className={cn("w-full")}
                               />

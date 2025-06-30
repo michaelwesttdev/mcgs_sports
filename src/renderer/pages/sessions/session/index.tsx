@@ -16,11 +16,14 @@ import Print from "@/renderer/components/print";
 import { ArrowLeft, Printer } from "lucide-react";
 import { useSettings } from "@/renderer/hooks/use_settings";
 import { Checkbox } from "@/renderer/components/ui/checkbox";
+import { useSessionSettings } from "./components/hooks/use_settings";
+import SettingsPage from "./components/Settings";
 
 export default function SessionViewPage() {
   const { id } = useParams();
   const { session, importEventsFromMainStore, events, fetchSessionEvents, createEvent, updateEvent, deleteEvent, createParticipant, updateParticipant, deleteParticipant, fetchSessionParticipants, fetchSessionHouses, updateHouse, deleteHouse, createHouse, participants, houses, createEventResult, updateEventResult, deleteEventResult, fetchSessionEventResults, eventResults } =
     useSessionHelper(id);
+  const {setSessionId,settings} = useSessionSettings();
   const [activeTab, setActiveTab] = useState("events");
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const navigate = useNavigate()
@@ -29,10 +32,14 @@ export default function SessionViewPage() {
     if (id) {
       (async () => {
         await window.api.handleSessionDbCreate(id);
+        await window.api.handleSessionSettingsContextCreate(settings,id)
+        setSessionId(id);
       })();
     }
     return () => {
+      setSessionId(null)
       window.api.handleSessionDbClose(id);
+      window.api.handleSessionSettingsContextClose(id)
     };
   }, []);
 
@@ -60,10 +67,11 @@ export default function SessionViewPage() {
       </div>
       {/* tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className='mt-4'>
-        <TabsList className='grid grid-cols-3 w-full max-w-md'>
+        <TabsList className='grid grid-cols-4 w-full max-w-md'>
           <TabsTrigger value='events'>Events</TabsTrigger>
           <TabsTrigger value='participants'>Participants</TabsTrigger>
           <TabsTrigger value='houses'>Houses</TabsTrigger>
+          <TabsTrigger value='settings'>Settings</TabsTrigger>
         </TabsList>
 
         {/* Events Tab */}
@@ -82,6 +90,10 @@ export default function SessionViewPage() {
         {/* Houses Tab */}
         <TabsContent value='houses'>
           <Houses createHouse={createHouse} fetchSessionHouses={fetchSessionHouses} participants={participants} houses={houses} onDelete={deleteHouse} onUpdate={updateHouse} results={eventResults} />
+        </TabsContent>
+        {/* Settings Tab */}
+        <TabsContent value='settings'>
+          <SettingsPage/>
         </TabsContent>
       </Tabs>
     </div>

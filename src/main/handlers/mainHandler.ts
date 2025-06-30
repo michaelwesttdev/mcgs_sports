@@ -12,7 +12,7 @@ import { BrowserWindow, dialog, ipcMain } from "electron";
 import * as PsSchema from "@/db/sqlite/p_sports/schema";
 import { getSessionDbPath } from "@/shared/helpers/urls";
 import { SettingsHandler } from "@/main/handlers/settingsHandler";
-import { settings } from "@/shared/settings";
+import { defaultSettings as settings } from "@/shared/settings";
 import fs from 'fs/promises'
 
 export class MainHandler {

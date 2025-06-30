@@ -10,6 +10,7 @@ import SessionViewPage from "./pages/sessions/session";
 import SettingsPage from "~/pages/settings";
 import {ErrorBoundary} from "~/rootErrorBoundary";
 import UnderConstructionPage from "~/components/UnderConstructionPage";
+import SessionLayout from "./pages/sessions/session/Layout";
 
 export default function App() {
   return (
@@ -18,7 +19,9 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path='sessions' element={<SessionsLayout />}>
           <Route index element={<SessionsPage />} />
-          <Route path=':id' element={<SessionViewPage />} />
+          <Route path=':id' element={<SessionLayout />}>
+          <Route index element={<SessionViewPage/>}/>
+          </Route>
         </Route>
         <Route path='disciplines' element={<DisciplinesPage />} />
         <Route path='events' element={<EventsPage />} />

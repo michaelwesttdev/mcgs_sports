@@ -70,6 +70,7 @@ const EventResult = sqliteTable("event_result", {
   participantType: text("participant_type", { enum: ["house", "participant"] }),
   position: integer("position").notNull(),
   points: integer("points").notNull(),
+  vlp: integer("vlp").notNull(),
   ...timestamps,
 });
 
