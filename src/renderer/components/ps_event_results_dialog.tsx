@@ -400,7 +400,7 @@ export default function PsEventResultsDialog({ deleteResult, onDone, updateEvent
                                   }
 
                                   if (Array.isArray(ageGroup)) {
-                                    return outOfBoundsAllowance ? ageGroup[1] <= age : ageGroup.includes(age);
+                                    return outOfBoundsAllowance ? ageGroup[1] <= age : (ageGroup[0]<= age || ageGroup[1]>=age);
                                   }
 
                                   return false;

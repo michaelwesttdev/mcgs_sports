@@ -35,7 +35,7 @@ export default function Events({createEvent,sessionId,importEventsFromMainStore,
         const [printDialogOpen,setPrintDialogOpen] = useState(false)
 
     function getLatestEventNumber(){
-        if (!events) return 1;
+        if (!events) return 0;
         let highest = 0;
         events.forEach(e=>{
             highest = e.eventNumber > highest? e.eventNumber : highest;
@@ -59,7 +59,7 @@ export default function Events({createEvent,sessionId,importEventsFromMainStore,
     return <Card className='w-full'>
         <CardHeader>
             <div className={"flex items-center gap-4"}>
-                <SessionEventDialogForm eventNumber={getLatestEventNumber()===1?1: getLatestEventNumber()+1} onCreate={createEvent}/>
+                <SessionEventDialogForm eventNumber={getLatestEventNumber()+1} onCreate={createEvent}/>
                
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
