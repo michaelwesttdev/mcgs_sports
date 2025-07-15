@@ -32,6 +32,16 @@ export const PerfomanceSportsChannels = [
   "ps:participant:delete",
   "ps:participant:list",
 ];
+export const DateFormats = [
+  'yyyy-MM-dd',
+  'dd-MM-yyyy',
+  'MM-dd-yyyy',
+  'yyyy/MM/dd',
+  'dd/MM/yyyy',
+  'MM/dd/yyyy',
+  'yyyy.MM.dd',
+  'dd.MM.yyyy',
+];
 export const IpcChannels = [
   ...MainChannels,
   ...PerfomanceSportsChannels,

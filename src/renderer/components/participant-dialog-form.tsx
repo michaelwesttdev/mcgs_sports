@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form"
 import { useForm } from "react-hook-form"
@@ -44,6 +44,11 @@ export default function ParticipantDialogForm({
   createHouse: (house: Omit<PSHouse, "id" | "createdAt" | "updatedAt" | "deletedAt">) => Promise<void>;
 }>) {
   const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState<{ kind: string, state: boolean }>({
+    kind: "",
+    state: false
+  });
+  const [dotCount, setDotCount] = useState(0);
 
   // Fetch houses when dialog opens
   React.useEffect(() => {
@@ -69,6 +74,10 @@ export default function ParticipantDialogForm({
   })
 
   async function onSubmit(data: ParticipantSchemaType) {
+    setLoading({
+      kind:(purpose==="create"?"Creating ":"Updating ")+"Participant",
+      state:true
+    })
     try {
       const validated = ParticipantSchema.safeParse(data);
       if (validated.error) {
@@ -96,8 +105,23 @@ export default function ParticipantDialogForm({
     } catch (error) {
       console.error(error)
       Toast({ message: error.message, variation: "error" })
+    }finally{
+      setLoading({
+        kind:"",
+        state:false
+      })
     }
   }
+  useEffect(() => {
+    if (loading.state) {
+      const interval = setInterval(() => {
+        setDotCount((prev) => (prev + 1) % 4);
+      }, 500);
+      return () => clearInterval(interval);
+    } else {
+      setDotCount(0);
+    }
+  }, [loading.state]);
 
   return (
     <Dialog
@@ -122,116 +146,124 @@ export default function ParticipantDialogForm({
         <ScrollArea className={"max-h-[90dvh] px-3"}><DialogHeader>
           <DialogTitle>{purpose === "create" ? "Create New" : "Edit"} Participant</DialogTitle>
         </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="First Name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {
+            loading.state ? (
+              <div className='flex items-center justify-center h-full'>
+                <p className='text-lg'>{loading.kind}{'.'.repeat(dotCount)} </p>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="First Name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Last Name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Last Name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="dob"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} placeholder="Date of Birth" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="dob"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} placeholder="Date of Birth" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Gender</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="houseId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>House</FormLabel>
-                    <FormControl>
-                      <SearchableSelectWithDialog value={field.value} onChange={field.onChange} options={houses.map((house) => (
-                        {
-                          id: house.id,
-                          name: house.name
-                        }
-                      ))} schema={HouseSchema} onAddOption={async (data) => {
-                        try {
-                          const newHouse: Omit<PSHouse, "createdAt" | "updatedAt" | "deletedAt"> = {
-                            id: nanoid(),
-                            name: data.name,
-                            abbreviation: data.abbreviation,
-                            color: data.color,
+                  <FormField
+                    control={form.control}
+                    name="houseId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>House</FormLabel>
+                        <FormControl>
+                          <SearchableSelectWithDialog value={field.value} onChange={field.onChange} options={houses.map((house) => (
+                            {
+                              id: house.id,
+                              name: house.name
+                            }
+                          ))} schema={HouseSchema} onAddOption={async (data) => {
+                            try {
+                              const newHouse: Omit<PSHouse, "createdAt" | "updatedAt" | "deletedAt"> = {
+                                id: nanoid(),
+                                name: data.name,
+                                abbreviation: data.abbreviation,
+                                color: data.color,
 
-                          }
-                          await createHouse(newHouse);
-                          field.onChange(newHouse.id);
-                        } catch (e) {
-                          console.log(e);
-                          Toast({ message: "Something went wrong", variation: "error" })
-                        }
-                      }} override={{
-                        "color": {
-                          type: "color"
-                        }
-                      }} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                              }
+                              await createHouse(newHouse);
+                              field.onChange(newHouse.id);
+                            } catch (e) {
+                              console.log(e);
+                              Toast({ message: "Something went wrong", variation: "error" })
+                            }
+                          }} override={{
+                            "color": {
+                              type: "color"
+                            }
+                          }} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Button type="submit" className="capitalize">
-                {purpose}
-              </Button>
-            </form>
-          </Form></ScrollArea>
-
+                  <Button type="submit" className="capitalize">
+                    {purpose}
+                  </Button>
+                </form>
+              </Form>
+            )
+          }
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )

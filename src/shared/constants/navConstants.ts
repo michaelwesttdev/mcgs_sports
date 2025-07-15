@@ -43,7 +43,7 @@ export const utility_links: NavLink[] = [
     Icon: Settings,
   },
   {
-    title: "Help",
+    title: "Help", 
     path: "/help",
     Icon: HelpCircle,
   },

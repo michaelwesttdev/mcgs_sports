@@ -19,6 +19,7 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { Toast } from "~/components/Toast";
 import { Settings } from "@/shared/settings";
 import { useSettings } from "~/hooks/use_settings";
+import ScrollBox from "@/renderer/components/ScrollBox";
 
 // Default settings
 
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   };
 
   return (
+    <ScrollBox>
     <div className="py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Competition Settings</h1>
@@ -62,5 +64,6 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </ScrollBox>
   );
 }

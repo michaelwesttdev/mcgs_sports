@@ -27,7 +27,7 @@ type CreateConfigProps = {
 
 type Props = {
   canCreate: boolean;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string,disabled?:boolean }[];
   onChange: (value: string) => void;
   value: string;
   placeholder?: string;
@@ -66,12 +66,13 @@ export default function SeachableSelectWithCreationLogic({
           <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent side="left">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
             {options?.map((option) => (
               <CommandItem
+              disabled={option.disabled}
                 key={option?.value}
                 onSelect={() => {
                   onChange(option?.value);

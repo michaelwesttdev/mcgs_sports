@@ -24,7 +24,7 @@ interface HouseContextProps {
 }
 
 export const HouseContext = React.createContext<HouseContextProps>({
-    listAllHouses: () => {},
+    listAllHouses: () => Promise.resolve(),
     createHouse: () => Promise.resolve(false),
     deleteHouse: () => Promise.resolve(false),
     updateHouse: () => Promise.resolve(false),

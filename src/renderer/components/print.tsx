@@ -4,10 +4,11 @@ import { usePrinters } from "../hooks/use_printers";
 import { Toast } from "./Toast";
 import { format } from "date-fns";
 import { getAgeGroupName } from "@/shared/helpers/ps_helpers";
-import { SessionSettings, Settings } from "@/shared/settings";
-import { useSettings } from "../hooks/use_settings";
-import { P } from "framer-motion/dist/types.d-CQt5spQA";
-import { useSessionSettings } from "../pages/sessions/session/components/hooks/use_settings";
+import { PSessionSettings, Settings } from "@/shared/settings";
+import { getAge } from "@/shared/helpers/dates";
+
+import watermarkImage from '@/assets/watermark.png';
+import { useSessionSettings } from "../pages/sessions/performance_session/components/hooks/use_settings";
 
 type PrintOptions = {
   maxPositions?: number;
@@ -16,7 +17,8 @@ type PrintOptions = {
 };
 type Props = {
   id?: string;
-  type: "session" | "event";
+  type: "session" | "event" | "topCompetitors";
+  trigger?: React.ReactElement;
   sessionId: string;
   printOptions?: PrintOptions;
   onDone?: () => void;
@@ -28,10 +30,10 @@ type eventDataToPrint = {
   sex: "male" | "female" | "mixed";
   age_group: string;
   event_type: "team" | "individual";
-  metric:string,
-  bestScore:string;
+  metric: string,
+  bestScore: string;
   eventRecord: string;
-  recordSetter:string;
+  recordSetter: string;
   results: Promise<{
     pos: number;
     participantId: string;
@@ -46,15 +48,9 @@ type eventDataToPrint = {
   firstPosMeasurement: string;
   newRecord: string;
 }
-type LudorumKind={
-    name: string;
-    age_group: string;
-    gender: string;
-    total: number;
-}
-export default function Print({ id, type, sessionId,printOptions,onDone }: Props) {
+export default function Print({ id, type, sessionId, printOptions, onDone, trigger }: Props) {
   const { selectedPrinter } = usePrinters();
-  const {settings} = useSessionSettings();
+  const { settings } = useSessionSettings();
   function handlePrint() {
     switch (type) {
       case "event":
@@ -69,9 +65,9 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
     onDone();
   }
   async function printEvent() {
-    const dataToPrint = await getEventDataToPrint(id, sessionId,settings);
+    const dataToPrint = await getEventDataToPrint(id, sessionId, settings);
     const dataResults = await Promise.all(dataToPrint.results);
-    const eventDataHtml= await renderEventBlock(dataToPrint, dataResults.length, false);
+    const eventDataHtml = await renderEventBlock(dataToPrint, dataResults.length, false);
     const structure = `
    <!DOCTYPE html>
 <html lang="en">
@@ -165,23 +161,12 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
   <h2>Event Record Sheet</h2>
 
   <div class="field-group">
-    <label for="eventNumber">Event Number:</label>
-    <input type="text" value=${dataToPrint.eventNumber} id="eventNumber">
-
-    <label for="eventName">Event Name:</label>
-    <input type="text" value=${dataToPrint.eventName} id="eventName">
-
-    <label for="eventSex">Event Sex:</label>
-    <input type="text" value=${dataToPrint.sex} id="eventSex">
-
-    <label for="eventAgeGroup">Event Age Group:</label>
-    <input type="text" value=${dataToPrint.age_group} id="eventAgeGroup">
-
-    <label for="eventType">Event Type:</label>
-    <input type="text" value=${dataToPrint.event_type} id="eventType">
-
-    <label for="bestScore">Best Score:</label>
-    <input type="text" value=${dataToPrint.bestScore} id="eventRecord">
+  <p><strong>Event Number:</strong> ${dataToPrint.eventNumber}</p>
+  <p><strong>Event Name:</strong> ${dataToPrint.eventName}</p>
+  <p><strong>Gender:</strong> ${dataToPrint.sex}</p>
+  <p><strong>Age Group:</strong> ${dataToPrint.age_group}</p>
+  <p><strong>Event Type:</strong> ${dataToPrint.event_type}</p>
+  <p><strong>Best Score:</strong> ${dataToPrint.bestScore}</p>
   </div>
 
   ${eventDataHtml}
@@ -202,13 +187,13 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
   }
 
   async function printSession(options: PrintOptions = {}) {
-    const { maxPositions , includePageBreaks} = options;
-    const sessionDataToPrint = await getSessionDataToPrint(sessionId,settings,options.printOnlyCompletedEvents);
+    const { maxPositions, includePageBreaks } = options;
+    const sessionDataToPrint = await getSessionDataToPrint(sessionId, settings, options.printOnlyCompletedEvents);
     const {
-      events, ludorum, allEventData,housePointsSummary
+      events, ludorum, allEventData, housePointsSummary
     } = sessionDataToPrint;
 
-    const summaryHTML = await renderSessionSummary(sessionId, events.length, events.filter(e=>e.status==="complete").length,housePointsSummary);
+    const summaryHTML = await renderSessionSummary(sessionId, events.length, events.filter(e => e.status === "complete").length, housePointsSummary);
     const victorHTML = renderLudorumTable("Victor Ludorum (Male)", ludorum.male);
     const victrixHTML = renderLudorumTable("Victrix Ludorum (Female)", ludorum.female);
     const eventsHTML = await Promise.all(
@@ -254,13 +239,38 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
         margin-top: 5px;
         padding:5px;
       }
+        @media print {
+          .watermark-image {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 400px;
+            height: 400px;
+            opacity: 0.05;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            z-index: 9999;
+            pointer-events: none;
+          }
+          .watermark-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+          body {
+            -webkit-print-color-adjust: exact;
+          }
+        }
     </style>
   </head>
   <body>
+  <div class="watermark-image">
+        <img src="${watermarkImage}" alt="Watermark" />
+      </div>
 
     ${summaryHTML}
     ${victorHTML}
     ${victrixHTML}
+    <div class="page-break"></div>
     ${eventsHTML.join("")}
 
   </body>
@@ -277,12 +287,14 @@ export default function Print({ id, type, sessionId,printOptions,onDone }: Props
       console.log(error);
     }
   }
-  return <Button onClick={handlePrint}>Print</Button>;
+  return trigger ?? (<Button onClick={handlePrint}>Print</Button>);
 }
 
-async function getSessionDataToPrint(sessionId: string,settings:SessionSettings, printOnlyCompletedEvents: boolean = false) {
+async function getSessionDataToPrint(sessionId: string, settings: PSessionSettings, printOnlyCompletedEvents = false) {
   const session = await window.api.mainReadSession(sessionId);
+  console.log("session: ", session)
   const events = await window.api.psListEvent(sessionId);
+  console.log("events: ", session)
   if (!session.success || !events.success) {
     throw new Error("Failed to fetch session or events data");
   }
@@ -298,86 +310,23 @@ async function getSessionDataToPrint(sessionId: string,settings:SessionSettings,
   if (!houses.success) {
     throw new Error("Failed to fetch houses data");
   }
-  const housePointsMap = new Map<string,{name:string,points:number}>();
-  houses.data.forEach((house:PSHouse) =>{
-    const resultsForHouse:PSEventResult[] = eventResults.data.filter((r:PSEventResult) =>{
+  const housePointsMap = new Map<string, { name: string, points: number }>();
+  houses.data.forEach((house: PSHouse) => {
+    const resultsForHouse: PSEventResult[] = eventResults.data.filter((r: PSEventResult) => {
       const isTeam = r.participantType === "house";
-      if(isTeam){
+      if (isTeam) {
         return r.participantId === house.id;
-      }else{
-        const participant = participants.data.find((p:PSParticipant) => p.id === r.participantId);
+      } else {
+        const participant = participants.data.find((p: PSParticipant) => p.id === r.participantId);
         return participant?.houseId === house.id;
       }
     });
-    const totalPoints = resultsForHouse.reduce((sum,result)=>sum+result.points,0)
-    housePointsMap.set(house.id,{name:house.name,points:totalPoints});
+    const totalPoints = resultsForHouse.reduce((sum, result) => sum + result.points, 0)
+    housePointsMap.set(house.id, { name: house.name, points: totalPoints });
   })
-  const allEventData:eventDataToPrint[] = await Promise.all(events.data.filter((e:PSEvent)=>printOnlyCompletedEvents?e.status==="complete":true).map(async (e: PSEvent) => {
-    const { data, success, error } = await window.api.psReadEvent([
-      sessionId,
-      e.id,
-    ]);
-    if (!success) return null;
-    const event = data as PSEvent;
-    const results = await window.api.psListEventResults(sessionId);
-    if (!results.success) return null;
-    const thisEventResults = (results.data as PSEventResult[]).filter(
-      (res) => res.eventId === e.id
-    );
-
-    return {
-      eventName: event.title,
-      eventNumber: event.eventNumber,
-      sex: event.gender,
-      age_group: event.ageGroup,
-      event_type: event.type,
-      eventRecord: event.record,
-      results: thisEventResults.map(async (res) => {
-        const isHuman = res.participantType === "participant";
-        let pName = "";
-        let hName = "";
-        let participantSex = "";
-        let p_age_group = "";
-        let add = "";
-        if (isHuman) {
-          const p = await window.api.psReadParticipant([
-            sessionId,
-            res.participantId,
-          ]);
-          if (!p.success) {
-            pName = "Unknown";
-            hName = "Unknown";
-            participantSex = "Unknown";
-            p_age_group = "Unknown";
-            add = "Internal App Error";
-          } else {
-            const house = await window.api.psReadHouse([
-              sessionId,
-              p.data.houseId,
-            ]);
-            pName = `${p.data.firstName} ${p.data.lastName}`;
-            hName = !house.success ? "Unknown" : house.data?.name;
-            participantSex = p.data.gender;
-            p_age_group = getAgeGroupName(settings.ageGroups, p.data?.dob);
-            add = "progress";
-          }
-        }
-        return {
-          pos: res.position,
-          participantId: res.participantId,
-          name: pName,
-          house: hName,
-          age_group: p_age_group,
-          sex: participantSex,
-          hp: res.points,
-          vlp: res.points,
-          additionalInfo: add,
-        };
-      }),
-      firstPosMeasurement: event.bestScore,
-      newRecord: event.isRecordBroken ? event.bestScore : "",
-    };
-  }))  as eventDataToPrint[]
+  const allEventData: eventDataToPrint[] = await Promise.all(events.data.filter((e: PSEvent) => printOnlyCompletedEvents ? e.status === "complete" : true).map(async (e: PSEvent) => {
+    return await getEventDataToPrint(e.id, sessionId, settings)
+  })) as eventDataToPrint[]
 
   const allResults = await Promise.all(allEventData.flatMap(async (e) => {
     const results = await Promise.all(e.results);
@@ -389,10 +338,11 @@ async function getSessionDataToPrint(sessionId: string,settings:SessionSettings,
     ludorum,
     allEventData,
     events: events.data as PSEvent[],
-    housePointsSummary:housePointsMap,
+    housePointsSummary: housePointsMap,
   }
 }
-async function getEventDataToPrint(id: string, sessionId: string,settings:SessionSettings) {
+
+async function getEventDataToPrint(id: string, sessionId: string, settings: PSessionSettings) {
   const { data, success, error } = await window.api.psReadEvent([
     sessionId,
     id,
@@ -410,7 +360,7 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Sessio
     eventNumber: event.eventNumber,
     sex: event.gender,
     bestScore: event.bestScore,
-    metric:event.measurementMetric,
+    metric: event.measurementMetric,
     age_group: event.ageGroup,
     event_type: event.type,
     eventRecord: event.record,
@@ -422,6 +372,7 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Sessio
       let participantSex = "";
       let p_age_group = "";
       let add = "";
+      let age = 0;
       if (isHuman) {
         const p = await window.api.psReadParticipant([
           sessionId,
@@ -433,6 +384,7 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Sessio
           participantSex = "Unknown";
           p_age_group = "Unknown";
           add = "Internal App Error";
+          age = 0;
         } else {
           const house = await window.api.psReadHouse([
             sessionId,
@@ -441,8 +393,38 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Sessio
           pName = `${p.data.firstName} ${p.data.lastName}`;
           hName = !house.success ? "Unknown" : house.data?.name;
           participantSex = p.data.gender;
+          age = getAge(p.data?.dob)
           p_age_group = getAgeGroupName(settings.ageGroups, p.data?.dob);
-          add = "progress";
+          const allowedEventAges = settings.ageGroups[event.ageGroup];
+          if (
+            (typeof allowedEventAges === "number" && age < allowedEventAges) ||
+            (Array.isArray(allowedEventAges) &&
+              typeof allowedEventAges[0] === "number" &&
+              typeof allowedEventAges[1] === "number" &&
+              (age < allowedEventAges[0] || age > allowedEventAges[1]))
+          ) {
+            add = "Not Of Age Group";
+          } else {
+            add = "Athlete";
+          }
+        }
+      } else {
+        const house = await window.api.psReadHouse([
+          sessionId,
+          res.participantId,
+        ]);
+        if (house.success) {
+          hName = house.data.name;
+          pName = house.data.name;
+          participantSex = event.gender;
+          p_age_group = event.ageGroup;
+          add = "Team";
+        } else {
+          pName = "Unknown";
+          hName = "Unknown";
+          participantSex = "Unknown";
+          p_age_group = "Unknown";
+          add = "Internal App Error";
         }
       }
       return {
@@ -461,6 +443,7 @@ async function getEventDataToPrint(id: string, sessionId: string,settings:Sessio
     newRecord: event.isRecordBroken ? event.bestScore : "",
   };
 }
+
 function calculateLudorumTables(results: {
   event: eventDataToPrint;
   pos: number;
@@ -535,8 +518,8 @@ function calculateLudorumTables(results: {
   return { male, female };
 }
 
-async function renderSessionSummary(sessionId: string, eventCount: number,completedEvents: number = 0,housePointsSummary?: Map<string,{name:string,points:number}>) {
-  const session =await window.api.mainReadSession(sessionId);
+async function renderSessionSummary(sessionId: string, eventCount: number, completedEvents = 0, housePointsSummary?: Map<string, { name: string, points: number }>) {
+  const session = await window.api.mainReadSession(sessionId);
   let name = "Unknown Session";
   let dateOfSession = "Unknown Date";
   if (session.success) {
@@ -553,17 +536,20 @@ async function renderSessionSummary(sessionId: string, eventCount: number,comple
     <hr />
     <h2>House Points Summary</h2>
     <table>
-      <thead><tr><th>Name</th><th>Points</th></tr></thead>
+      <thead><tr><th>Position</th><th>Name</th><th>Points</th></tr></thead>
       <tbody>
-        ${Array.from(housePointsSummary).map(house=>`
+        ${Array.from(housePointsSummary).sort((a, b) => {
+    return b[1].points - a[1].points;
+  }).map((house, index) => `
           <tr key="${house[0]}">
+            <td>${index + 1}</td>
             <td>${house[1].name}</td>
             <td>${house[1].points}</td>
           </tr>
         `).join("")}
       </tbody>
     </table>
-    <hr />
+    <hr/>
   `;
 }
 
@@ -577,39 +563,39 @@ function renderLudorumTable(
   return `
     <h2>${title}</h2>
     ${data.map(group => {
-      const sorted = [...group.participants].sort((a, b) => b.total - a.total);
+    const sorted = [...group.participants].sort((a, b) => b.total - a.total);
 
-      const rows = [];
-      let position = 1;
-      let i = 0;
+    const rows = [];
+    let position = 1;
+    let i = 0;
 
-      while (i < sorted.length) {
-        const tieGroup = [sorted[i]];
-        let j = i + 1;
+    while (i < sorted.length) {
+      const tieGroup = [sorted[i]];
+      let j = i + 1;
 
-        // Collect all participants with the same score
-        while (j < sorted.length && sorted[j].total === sorted[i].total) {
-          tieGroup.push(sorted[j]);
-          j++;
-        }
+      // Collect all participants with the same score
+      while (j < sorted.length && sorted[j].total === sorted[i].total) {
+        tieGroup.push(sorted[j]);
+        j++;
+      }
 
-        // Render all participants in the tie group with the same position
-        for (const p of tieGroup) {
-          rows.push(`
+      // Render all participants in the tie group with the same position
+      for (const p of tieGroup) {
+        rows.push(`
             <tr>
               <td>${ordinal(position)}</td>
               <td>${p.name}</td>
               <td>${p.total}</td>
             </tr>
           `);
-        }
-
-        // Compact (dense) ranking: increment by 1 regardless of tie size
-        position += 1;
-        i = j;
       }
 
-      return `
+      // Compact (dense) ranking: increment by 1 regardless of tie size
+      position += 1;
+      i = j;
+    }
+
+    return `
         <h3>Age Group: ${group.age_group}</h3>
         <table border="1" cellspacing="0" cellpadding="5">
           <thead>
@@ -624,24 +610,24 @@ function renderLudorumTable(
           </tbody>
         </table>
       `;
-    }).join("")}
+  }).join("")}
   `;
 }
 function ordinal(n: number): string {
   const s = ["th", "st", "nd", "rd"],
-        v = n % 100;
+    v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 
 
-  async function renderEventBlock(data: eventDataToPrint, maxPositions: number, pageBreak: boolean) {
+async function renderEventBlock(data: eventDataToPrint, maxPositions: number, pageBreak: boolean) {
   const dataResults = (await Promise.all(data.results)).slice(0, maxPositions);
   const firstPos = dataResults.find(r => r.pos === 1);
 
   return `
   <div class="${pageBreak ? 'page-break' : 'no-break'} border">
-    <h2>${data.eventName} (${data.sex.toUpperCase()} ${data.age_group})</h2>
+    <h2>Event Number ${data.eventNumber} - ${data.eventName} (${data.sex.toUpperCase()} ${data.age_group})</h2>
 
     <table>
       <thead>
@@ -670,7 +656,7 @@ function ordinal(n: number): string {
       <p><strong>Set By:</strong> ${firstPos?.name || "N/A"}</p>
     ` : `
     <p><strong>Old Record:</strong> ${data.eventRecord} ${data.metric}</p>
-      <p><strong>Set By:</strong> ${data.recordSetter|| "N/A"}</p>
+      <p><strong>Set By:</strong> ${data.recordSetter || "N/A"}</p>
     `}
   </div>
   `;

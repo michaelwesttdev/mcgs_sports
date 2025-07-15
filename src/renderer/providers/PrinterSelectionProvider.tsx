@@ -9,7 +9,7 @@ type Props = {
 }
 
 function PrinterSelectionProvider({children}: Props) {
-    const [isOpen,setIsOpen] = React.useState(true);
+    const [isOpen,setIsOpen] = React.useState(false);
     const {selectedPrinter} = usePrinters();
   return (
     <>

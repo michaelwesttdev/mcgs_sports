@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 import { api as apiExtention } from "./handlers/rendererHandler";
-import {SessionSettings, Settings} from "@/shared/settings";
+import {PSessionSettings, Settings, TSessionSettings} from "@/shared/settings";
 import { FetchSessionSettingsArgs, UpdateSessionSettingsArgs } from "@/shared/types/api";
 
 function getVersion() {
@@ -30,7 +30,7 @@ async function handleSessionDbCreate(id: string) {
 async function handleSessionDbClose(id: string) {
   return await ipcRenderer.invoke("session:closeDbContext", id);
 }
-async function handleSessionSettingsContextCreate(defaults:SessionSettings,id: string) {
+async function handleSessionSettingsContextCreate(defaults:PSessionSettings|TSessionSettings,id: string) {
   return await ipcRenderer.invoke("settings:createSettingsContext", {defaults,sessionId:id});
 }
 async function handleSessionSettingsContextClose(id: string) {

@@ -15,6 +15,8 @@ import { useEvents } from "~/hooks/use_events";
 import NewEventDialogForm from "~/components/new-event-dialog-form";
 import {DeleteModal} from "~/components/deleteModal";
 import {getGenderName} from "@/shared/genderName";
+import { ScrollBar } from "@/renderer/components/ui/scroll-area";
+import ScrollBox from "@/renderer/components/ScrollBox";
 
 export default function EventsPage() {
   const [searchTitle, setSearchTitle] = useState("");
@@ -43,6 +45,7 @@ export default function EventsPage() {
   }, []);
 
   return (
+    <ScrollBox>
     <div className='p-6 space-y-6'>
       <div className='flex justify-between items-center'>
         <div>
@@ -123,5 +126,6 @@ export default function EventsPage() {
         )}
       </div>
     </div>
+    </ScrollBox>
   );
 }

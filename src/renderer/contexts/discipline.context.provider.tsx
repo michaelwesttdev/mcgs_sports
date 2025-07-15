@@ -24,7 +24,7 @@ interface DisciplineContextProps {
 }
 
 export const DisciplineContext = React.createContext<DisciplineContextProps>({
-  listAllDisciplines: () => {},
+  listAllDisciplines: () => Promise.resolve(),
   createDiscipline: () => Promise.resolve(false),
   deleteDiscipline: () => Promise.resolve(false),
   updateDiscipline: () => Promise.resolve(false),

@@ -6,18 +6,16 @@ import { ScrollArea } from "../ui/scroll-area";
 export default function RootLayout() {
   const [collapsed, setCollapsed] = useState<boolean>(true);
   return (
-    <main className='flex flex-col h-screen w-screen overflow-hidden'>
+    <main className='flex flex-col h-dvh w-screen overflow-hidden'>
       <TitleBar
         title='MCGS Sports'
         toggleNav={() => setCollapsed(!collapsed)}
       />
-      <section className='flex flex-1 overflow-hidden'>
+      <section className='flex flex-1 overflow-hidden h-[calc(100dvh-2rem)]'>
         <MainNav collapsed={collapsed} />
-        <ScrollArea className='flex-1'>
-          <div className='p-4'>
+          <div className='p-4 flex-1 flex flex-col h-full relative'>
             <Outlet />
           </div>
-        </ScrollArea>
       </section>
     </main>
   );

@@ -9,6 +9,7 @@ import React, { useEffect } from "react";
 import {useEvents} from "~/hooks/use_events";
 import {useSession} from "~/hooks/use_session";
 import {useNavigate} from "react-router";
+import ScrollBox from "@/renderer/components/ScrollBox";
 
 function DashboardPageHeader() {
   return (
@@ -64,9 +65,11 @@ export default function DashboardPage() {
     listAllDisciplines();
   }, []);
   return (
+    <ScrollBox>
     <div className='p-6 pt-2'>
       <DashboardPageHeader />
       <DashboardPageQuickActions />
     </div>
+    </ScrollBox>
   );
 }

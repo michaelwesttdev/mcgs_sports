@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/renderer/components/ui/select";
 import { DeleteModal } from "@/renderer/components/deleteModal";
+import ScrollBox from "@/renderer/components/ScrollBox";
 
 export default function DisciplinesPage() {
   const [searchName, setSearchName] = useState("");
@@ -27,6 +28,7 @@ export default function DisciplinesPage() {
   );
 
   return (
+    <ScrollBox>
     <div className='p-6 space-y-6'>
       <div className='flex justify-between items-center'>
         <h1 className='text-2xl font-bold'>Disciplines</h1>
@@ -87,5 +89,6 @@ export default function DisciplinesPage() {
         )}
       </div>
     </div>
+    </ScrollBox>
   );
 }

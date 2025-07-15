@@ -1,6 +1,8 @@
 export type PlacePoints = {
   [place: number]: number; // e.g. 1 => 10, 2 => 8, etc.
 };
+export type StatKeys = string[]
+export type tEventType = string[]
 
 export type PointsSettings = {
   team?: PlacePoints;
@@ -8,14 +10,25 @@ export type PointsSettings = {
   vlp?:PlacePoints;
 };
 
-export type Settings = {}
+export type Settings = Record<string, never>;
 
-export type SessionSettings = {
+export type PSessionSettings = {
+  rules:{
+    maxEventsPerPerson:number;
+  },
   ageGroups: Record<string, number | [number, number]>;
   points: PointsSettings;
 };
 
-export const defaultSessionSettings: SessionSettings = {
+export type TSessionSettings={
+  statKeys: StatKeys;
+  eventTypes: tEventType;
+}
+
+export const defaultPSessionSettings: PSessionSettings = {
+  rules:{
+    maxEventsPerPerson:10,
+  },
   ageGroups: {
     U14: [12, 13],
     U16: [14, 15],
@@ -41,6 +54,11 @@ export const defaultSessionSettings: SessionSettings = {
     },
   },
 };
+
+export const defaultTSessionSettings: TSessionSettings = {
+  statKeys:[],
+  eventTypes:[],
+}
 
 export const defaultSettings:Settings = {}
 

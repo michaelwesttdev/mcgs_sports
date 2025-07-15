@@ -16,7 +16,7 @@ import { useEvents } from "~/hooks/use_events";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { natures } from "@/shared/constants/constants";
 import { metrics } from "@/shared/settings"
-import { useSessionSettings } from "../pages/sessions/session/components/hooks/use_settings"
+import { useSessionSettings } from "../pages/sessions/performance_session/components/hooks/use_settings"
 
 // Define the schema for the Event form
 const NewEventSchema = z.object({

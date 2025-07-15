@@ -19,11 +19,11 @@ interface EventContextProps {
 }
 
 export const EventContext = React.createContext<EventContextProps>({
-  listAllEvents: () => {},
+  listAllEvents: () => Promise.resolve(),
   createEvent: () => Promise.resolve(false),
   deleteEvent: () => Promise.resolve(false),
   updateEvent: () => Promise.resolve(false),
-  duplicateEvent: async() => {},
+  duplicateEvent: () => Promise.resolve(),
   events: [],
   loading: false,
   error: null,

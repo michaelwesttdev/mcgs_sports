@@ -19,7 +19,7 @@ interface SessionContextProps {
 }
 
 export const SessionContext = React.createContext<SessionContextProps>({
-  listAllSessions: () => {},
+  listAllSessions: () => Promise.resolve(),
   createSession: () => Promise.resolve(false),
   deleteSession: () => Promise.resolve(false),
   updateSession: () => Promise.resolve(false),

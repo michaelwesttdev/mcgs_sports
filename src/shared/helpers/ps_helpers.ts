@@ -1,11 +1,11 @@
-import {SessionSettings} from "@/shared/settings";
+import {PSessionSettings} from "@/shared/settings";
 import {PSEvent, PSEventResult, PSHouse, PSParticipant} from "@/db/sqlite/p_sports/schema";
 import { getAge } from "./dates";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
 
-export function getPointsForParticipant(position:number,eventType:"team"|"individual",settings:SessionSettings,isDisqualified:boolean){
+export function getPointsForParticipant(position:number,eventType:"team"|"individual",settings:PSessionSettings,isDisqualified:boolean){
     const pointAllocationInSettings = settings.points[eventType];
     const vlpPointsInSettings = settings.points.vlp;
 
@@ -25,7 +25,7 @@ export function assignPointsPreservingOrder(
         position: number; // ignored
     }[],
     eventType: "team" | "individual",
-    settings: SessionSettings,
+    settings: PSessionSettings,
     eventId: string
 ): Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[] {
     const validResults = results
@@ -134,7 +134,7 @@ function parseTimeString(time: string, unit: string): number {
 }
 
 export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEventResult, "createdAt" | "updatedAt" | "deletedAt">[],eventNature:PSEvent["measurementNature"],event:PSEvent,participants:PSParticipant[],houses:PSHouse[]){
-    const hasRecord = !!(event?.record && event?.recordHolder);
+    const hasRecord = event?.record?true:false;
     const winner = results.find(r=>r.position === 1);
     if(!winner) return {
         isBroken:false
@@ -145,7 +145,7 @@ export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEvent
         return {
             isBroken: true,
             newRecord: bestScore,
-            recordHolder: winnerName
+            recordHolder: winnerName 
         };
     }
     const timeMetricKeys = ["minutes", "seconds", "hours", "days", "milliseconds"] as const;
@@ -176,7 +176,7 @@ export function checkIfRecordHasBeenBroken(bestScore:string,results:Omit<PSEvent
     };
 }
 
-export function getAgeGroupName(ageGroups:SessionSettings["ageGroups"],dob:string){
+export function getAgeGroupName(ageGroups:PSessionSettings["ageGroups"],dob:string){
     if(!dob) return "Unknown";
     const age = getAge(dob);
     

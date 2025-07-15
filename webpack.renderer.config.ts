@@ -4,6 +4,7 @@ import { rules } from "./webpack.rules";
 import { plugins } from "./webpack.plugins";
 import { TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
 import path from "path";
+ // asset directories
 
 rules.push({
   test: /\.css$/,

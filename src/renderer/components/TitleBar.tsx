@@ -24,8 +24,6 @@ export function TitleBar({
   };
 
   return (
-    <div className='flex flex-col w-full'>
-      {/* Title bar with controls */}
       <div className='flex h-8 w-full items-center justify-between bg-gray-900 text-white select-none'>
         <div className='flex items-center px-2 gap-2 flex-grow'>
           <button
@@ -72,6 +70,5 @@ export function TitleBar({
           </button>
         </div>
       </div>
-    </div>
   );
 }
